@@ -38,12 +38,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <osgi.version>4.2.0</osgi.version>
+        <testng.version>5.14.9</testng.version>
     </properties>
 
     <modules>
         <module>fragments</module>
-    <module>test-support</module>
-  </modules>
+        <module>test-support</module>
+    </modules>
     
     <dependencyManagement>
         <dependencies>
@@ -58,6 +59,12 @@
                 <artifactId>org.osgi.compendium</artifactId>
                 <version>${osgi.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
