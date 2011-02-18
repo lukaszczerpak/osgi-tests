@@ -23,7 +23,7 @@ import java.util.Map;
  * @author ancoron
  */
 public abstract class OSGiTestSupport {
-
+    
     public abstract void startFramework(final Map<String, String> properties);
 
     public abstract void stopFramework();
