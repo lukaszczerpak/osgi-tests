@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.chaoslayer.osgi.fragments.simple;
+package org.ancoron.osgi.fragments.simple;
 
 /**
  *
