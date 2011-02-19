@@ -8,7 +8,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>felix</artifactId>
+    <artifactId>test-support-felix</artifactId>
 
     <name>Felix OSGi test support project</name>
 
@@ -17,6 +17,16 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>test-support-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.framework</artifactId>
+            <version>3.0.8</version>
         </dependency>
     </dependencies>
 </project>

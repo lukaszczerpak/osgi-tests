@@ -16,10 +16,20 @@
 
 package org.ancoron.osgi.test.felix;
 
+import java.util.Map;
+import org.ancoron.osgi.test.OSGiTestSupport;
+import org.apache.felix.framework.Felix;
+
 /**
  *
  * @author ancoron
  */
-public class FelixTestSupport {
+public class FelixTestSupport extends OSGiTestSupport<Felix> {
 
+
+    @Override
+    public void configureFramework(Map<String, String> properties) {
+        Felix f = new Felix(properties);
+        setFramework(f);
+    }
 }
