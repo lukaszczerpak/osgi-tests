@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 chaoslayer.
+ * Copyright 2011 ancoron.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.ancoron.osgi.fragments.simple;
 
 /**
  *
- * @author chaoslayer
+ * @author ancoron
  */
 public class ClassA {
 
