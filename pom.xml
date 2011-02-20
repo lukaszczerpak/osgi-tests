@@ -39,6 +39,8 @@
         
         <osgi.version>4.2.0</osgi.version>
         <testng.version>5.14.9</testng.version>
+        <glassfish.version>3.1-b43</glassfish.version>
+        <glassfish.install.dir>/srv/servers/glassfish/tests</glassfish.install.dir>
     </properties>
 
     <modules>
@@ -87,8 +89,9 @@
                     <version>2.7.1</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
                             <maven.repo>${settings.localRepository}</maven.repo>
+                            <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
+                            <glassfish.version>${glassfish.version}</glassfish.version>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
