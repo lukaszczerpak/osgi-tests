@@ -16,9 +16,14 @@
 
 package org.ancoron.osgi.test.felix;
 
+import java.io.File;
 import java.util.Map;
 import org.ancoron.osgi.test.OSGiTestSupport;
 import org.apache.felix.framework.Felix;
+import org.apache.felix.framework.cache.BundleCache;
+import org.apache.felix.framework.util.StringMap;
+
+import static org.testng.Assert.*;
 
 /**
  *
@@ -28,8 +33,21 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
 
 
     @Override
-    public void configureFramework(Map<String, String> properties) {
-        Felix f = new Felix(properties);
-        setFramework(f);
+    public void configureFramework() {
+        Map configMap = new StringMap(false);
+        configMap.put(BundleCache.CACHE_ROOTDIR_PROP, "test");
+
+        File file = new File("target/osgi-cache");
+        file.delete();
+        file.mkdirs();
+        file.deleteOnExit();
+
+        try {
+            configMap.put("org.osgi.framework.storage", file.getCanonicalPath());
+        } catch(Exception x) {
+            fail("Configuring Apache Felix failed", x);
+        }
+
+        setFramework(new Felix(configMap));
     }
 }
