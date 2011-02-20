@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ancoron.osgi.fragments.simple;
+package org.ancoron.osgi.test.fragments.simple;
 
 /**
  *
