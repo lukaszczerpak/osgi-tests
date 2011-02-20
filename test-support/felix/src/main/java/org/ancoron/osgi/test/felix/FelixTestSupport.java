@@ -31,6 +31,16 @@ import static org.testng.Assert.*;
  */
 public class FelixTestSupport extends OSGiTestSupport<Felix> {
 
+    /**
+     * A simple  method to customize the configuration for Felix to meet your
+     * requirements.
+     * 
+     * Just override this method to customize the startup configuration.
+     * 
+     * @param configMap A StringMap with very basic configuration
+     */
+    public void customizeFrameworkConfig(final Map configMap) {
+    }
 
     @Override
     public void configureFramework() {
@@ -44,6 +54,8 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
 
         try {
             configMap.put("org.osgi.framework.storage", file.getCanonicalPath());
+            
+            customizeFrameworkConfig(configMap);
         } catch(Exception x) {
             fail("Configuring Apache Felix failed", x);
         }
