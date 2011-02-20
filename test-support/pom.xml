@@ -16,5 +16,6 @@
     <modules>
         <module>base</module>
         <module>felix</module>
+        <module>glassfish</module>
     </modules>
 </project>
