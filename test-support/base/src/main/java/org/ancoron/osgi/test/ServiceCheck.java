@@ -41,7 +41,7 @@ public class ServiceCheck implements Callable<Boolean> {
     public Boolean call() throws Exception {
         ServiceReference[] svcs = null;
         try {
-            svcs = ctx.getServiceReferences(clazz, filter.toString());
+            svcs = ctx.getServiceReferences(clazz, filter);
         } catch (Exception ex) {
             System.err.println("Unable to check service availability for class '"
                     + clazz + "' (filter=" + filter + ")");
