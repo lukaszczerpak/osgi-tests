@@ -18,9 +18,14 @@ package org.ancoron.osgi.test.glassfish;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import org.ancoron.osgi.test.felix.FelixTestSupport;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 
 import static org.testng.Assert.*;
 
@@ -34,6 +39,9 @@ public class GlassfishTestSupport extends FelixTestSupport {
     private static final String GF_VER_PROP = "glassfish.version";
 
     private Bundle glassfish = null;
+    private Object glassfishService = null;
+    
+    private Map<String, String> services = new HashMap<String, String>();
     
     protected File getGlassfishDir() {
         String path = System.getProperty(GF_DIR_PROP);
@@ -83,6 +91,42 @@ public class GlassfishTestSupport extends FelixTestSupport {
         } catch (BundleException ex) {
             fail("Unable to start GlassFish", ex);
         }
+
+        String gfService = "org.glassfish.embeddable.GlassFish";
+        services.put(gfService, null);
+        waitForServices(10000);
+        
+        BundleContext ctx = getFramework().getBundleContext();
+        ServiceReference ref = ctx.getServiceReference(gfService);
+        
+        glassfishService = ctx.getService(ref);
+        // glassfishService.getCommandRunner().run("", null);
+        
+        try {
+            Object status = invokeGlassfishService("getStatus", Object.class);
+            System.out.println("GlassFish status: " + status);
+        } catch (Exception ex) {
+            fail("Unable to get status of GlassFish", ex);
+        }
+        
+        services.clear();
+    }
+    
+    protected <T> T invokeGlassfishService(String method, Class<T> returnType) {
+        return invoke(glassfishService, method, returnType);
+    }
+
+    protected <T> T invoke(final Object inst, final String method, Class<T> returnType) {
+        T ret = null;
+
+        try {
+            Method m = inst.getClass().getMethod(method, new Class<?>[0]);
+            ret = (T) m.invoke(inst, new Object[0]);
+        } catch(Exception x) {
+            fail("Invoking method " + method + " failed", x);
+        }
+        
+        return ret;
     }
 
     @Override
