@@ -150,6 +150,8 @@ public abstract class OSGiTestSupport<T extends Framework> {
         try {
             System.out.println("Starting framework ...");
             getFramework().start();
+            
+            getFramework().getBundleContext().addServiceListener(new LoggingServiceListener());
         } catch (BundleException ex) {
             fail("Unable to start framework", ex);
         }
