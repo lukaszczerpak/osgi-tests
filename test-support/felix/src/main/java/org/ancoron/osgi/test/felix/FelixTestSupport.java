@@ -49,7 +49,7 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
      * @param configMap A StringMap with very basic configuration
      */
     public void customizeFrameworkConfig(final Map configMap) {
-        File config = new File("src/main/resources/felix/conf/config.properties");
+        File config = new File("src/test/resources/felix/conf/config.properties");
         
         if(config.exists()) {
             try {
