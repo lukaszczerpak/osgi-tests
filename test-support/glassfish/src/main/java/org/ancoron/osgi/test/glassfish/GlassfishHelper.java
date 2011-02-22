@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -37,7 +38,7 @@ public class GlassfishHelper {
     private final static String DOWNLOAD_BASE;
     
     static {
-        String dlProp = System.getProperty("glassfish.download.url");
+        String dlProp = System.getProperty(GlassfishConfig.DOWNLOAD_URL);
         if(dlProp != null) {
             DOWNLOAD_BASE = dlProp;
         } else {
@@ -57,6 +58,92 @@ public class GlassfishHelper {
 
         f.delete();
         f = null;
+    }
+    
+    protected static String getSysProp(String name) {
+        return System.getProperty(name);
+    }
+    
+    protected static File getDomainDir() throws IOException {
+        String dir = getSysProp(GlassfishConfig.DOMAIN_DIR);
+        
+        if(dir == null) {
+            dir = "target/test-domain";
+        }
+        
+        return new File(dir);
+    }
+
+    protected static File getConfiguredFile(String sysProp,
+            String defaultLocation, boolean checkExists)
+    {
+        File xmlFile = null;
+        String xml = getSysProp(sysProp);
+        
+        if(xml == null) {
+            xml = defaultLocation;
+        }
+
+        xmlFile = new File(xml);
+        
+        if(checkExists && !xmlFile.exists()) {
+            xmlFile = null;
+        }
+        
+        return xmlFile;
+    }
+    
+    protected static File getDomainDirOverlay() throws IOException {
+        String xml = "src/test/resources/glassfish-domain";
+        File xmlFile = new File(xml);
+        
+        if(!xmlFile.exists()) {
+            xmlFile = null;
+        } else if(!xmlFile.isDirectory()) {
+            throw new IOException("Must be a directory: " + xmlFile.getAbsolutePath());
+        }
+        
+        return xmlFile;
+    }
+    
+    public static void configureGlassfish(final String installPath)
+            throws IOException
+    {
+        final File domainDir = getDomainDir();
+        
+        if(!domainDir.exists()) {
+            System.out.println("Preparing GlassFish domain: " + domainDir.getCanonicalPath());
+            domainDir.mkdirs();
+            File orig = new File(installPath, "glassfish3/glassfish/domains/domain1");
+            FileUtils.copyDirectory(orig, domainDir, false);
+            
+            File tmp = new File(domainDir, "applications");
+            if(tmp.exists()) {
+                FileUtils.cleanDirectory(tmp);
+            }
+
+            tmp = new File(domainDir, "generated");
+            if(tmp.exists()) {
+                FileUtils.cleanDirectory(tmp);
+            }
+
+            tmp = new File(domainDir, "osgi-cache");
+            if(tmp.exists()) {
+                FileUtils.cleanDirectory(tmp);
+            }
+
+            tmp = new File(domainDir, "logs");
+            if(tmp.exists()) {
+                FileUtils.cleanDirectory(tmp);
+            }
+        }
+        
+        File config = getDomainDirOverlay();
+        if(config != null) {
+            FileUtils.copyDirectory(config, domainDir, false);
+        }
+        
+        System.setProperty("com.sun.aas.instanceRoot", domainDir.getCanonicalPath());
     }
 
     public static void unzip(String zipFile, String targetPath) throws IOException {
