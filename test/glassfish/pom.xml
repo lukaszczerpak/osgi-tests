@@ -52,7 +52,8 @@
                             <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
                             <glassfish.version>${glassfish.version}</glassfish.version>
                         </systemPropertyVariables>
-                        <argLine>-server -Djava.endorsed.dirs=${glassfish.install.dir}/glassfish3/glassfish/modules/endorsed:${glassfish.install.dir}/glassfish3/glassfish/lib/endorsed</argLine>
+                        <argLine>-server</argLine>
+                        <argLine>-Djava.endorsed.dirs=${glassfish.install.dir}/glassfish3/glassfish/modules/endorsed:${glassfish.install.dir}/glassfish3/glassfish/lib/endorsed</argLine>
                     </configuration>
                 </plugin>
         </plugins>
