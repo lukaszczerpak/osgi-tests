@@ -16,16 +16,10 @@
 
 package org.ancoron.osgi.test;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  *
@@ -46,7 +40,7 @@ public class ServiceAvailabilityChecker implements Callable<Boolean> {
         boolean ready = checkServices();
         
         while(!ready) {
-            Thread.sleep(1000);
+            Thread.sleep(250);
             ready = checkServices();
         }
         
@@ -55,24 +49,30 @@ public class ServiceAvailabilityChecker implements Callable<Boolean> {
 
     private Boolean checkServices() throws Exception {
         boolean ready = true;
-        ExecutorService svc = Executors.newFixedThreadPool(services.size());
-        Set<ServiceCheck> tasks = new HashSet<ServiceCheck>();
         for(String clazz : services.keySet()) {
             String filter = services.get(clazz);
-            tasks.add(new ServiceCheck(ctx, clazz, filter));
-        }
-
-        List<Future<Boolean>> futes = svc.invokeAll(tasks, 1000, TimeUnit.MILLISECONDS);
-
-        for(Future<Boolean> task : futes) {
-            Boolean b = Boolean.FALSE;
+            ServiceReference[] svcs = null;
             try {
-                b = task.get();
+                svcs = ctx.getServiceReferences(clazz, filter);
             } catch (Exception ex) {
-                System.err.println("Unable to get service: " + ex);
+                System.err.println("Unable to check service availability for class '"
+                        + clazz + "' (filter=" + filter + ")");
+                ex.printStackTrace(System.err);
             }
-            if(!b.booleanValue()) {
-                ready = false;
+            
+            ready = false;
+
+            if(svcs != null && svcs.length > 0) {
+                for(ServiceReference ref : svcs) {
+                    if(ctx.getService(ref) != null) {
+                        // if at least one service is available...
+                        ready = true;
+                    }
+                }
+            }
+
+            if(!ready) {
+                break;
             }
         }
         

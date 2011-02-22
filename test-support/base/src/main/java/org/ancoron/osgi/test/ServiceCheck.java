@@ -48,7 +48,7 @@ public class ServiceCheck implements Callable<Boolean> {
             ex.printStackTrace(System.err);
         }
 
-        if(svcs != null && svcs.length < 1) {
+        if(svcs != null && svcs.length > 0) {
             for(ServiceReference ref : svcs) {
                 if(ctx.getService(ref) != null) {
                     // if at least one service is available...

@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -44,12 +46,15 @@ import static org.testng.Assert.*;
  * @author ancoron
  */
 public abstract class OSGiTestSupport<T extends Framework> {
+
+    private static final Logger log = Logger.getLogger("GenericOSGiTest");
     
     private T framework;
 
-    protected List<File> files = new ArrayList<File>();
-    protected List<Bundle> bundles = new ArrayList<Bundle>();
-    
+    protected final List<File> files = new ArrayList<File>();
+    protected final List<Bundle> bundles = new ArrayList<Bundle>();
+    protected final Map<String, String> services = new HashMap<String, String>();
+
     public T getFramework() {
         return framework;
     }
@@ -66,9 +71,9 @@ public abstract class OSGiTestSupport<T extends Framework> {
         Bundle bundle = null;
 
         if (!bundlePath.exists()) {
-            System.out.println("WARNING: File does not exist: " + bundlePath.getAbsolutePath());
+            log.log(Level.WARNING, "File does not exist: {0}", bundlePath.getAbsolutePath());
         } else {
-            System.out.println("Installing artifact " + bundlePath.getAbsolutePath() + " ...");
+            log.log(Level.INFO, "Installing artifact {0} ...", bundlePath.getAbsolutePath());
             try {
                 bundle = bundleContext.installBundle("file://" + bundlePath.getCanonicalPath());
             } catch (Exception ex) {
@@ -80,7 +85,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
     
     protected void uninstallBundle(Bundle bundle) {
-        System.out.println("Uninstalling bundle " + toString(bundle) + " ...");
+        log.log(Level.INFO, "Uninstalling bundle {0} ...", toString(bundle));
         try {
             bundle.uninstall();
         } catch (BundleException ex) {
@@ -93,7 +98,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
     
     protected void startBundle(Bundle bundle) {
-        System.out.println("Starting bundle " + toString(bundle) + " ...");
+        log.log(Level.INFO, "Starting bundle {0} ...", toString(bundle));
         try {
             bundle.start();
         } catch (BundleException ex) {
@@ -102,7 +107,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
     
     protected void stopBundle(Bundle bundle) {
-        System.out.println("Stopping bundle " + toString(bundle) + " ...");
+        log.log(Level.INFO, "Stopping bundle {0} ...", toString(bundle));
         try {
             bundle.stop();
         } catch (BundleException ex) {
@@ -111,7 +116,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
 
     protected void updateBundle(Bundle bundle, InputStream is) {
-        System.out.println("Updating bundle " + toString(bundle) + " ...");
+        log.log(Level.INFO, "Updating bundle {0} ...", toString(bundle));
         try {
             bundle.update(is);
         } catch (BundleException ex) {
@@ -119,13 +124,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
     }
 
-    public Map<String, String> getTrackedServices() {
-        return new HashMap<String, String>();
-    }
-    
-    public void waitForServices(int timeout) {
-        Map<String, String> services = getTrackedServices();
-
+    public void waitForServices() {
         if(services != null && !services.isEmpty()) {
             boolean ready = false;
             BundleContext ctx = getFramework().getBundleContext();
@@ -133,7 +132,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
 
             ExecutorService exec = Executors.newSingleThreadExecutor();
             try {
-                ready = exec.submit(checker).get(timeout, TimeUnit.MILLISECONDS).booleanValue();
+                ready = exec.submit(checker).get().booleanValue();
             } catch (Exception ex) {
                 fail("Unable to get all services", ex);
             }
@@ -148,7 +147,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     
     public void startFramework() {
         try {
-            System.out.println("Starting framework ...");
+            log.info("Starting framework ...");
             getFramework().start();
             
             getFramework().getBundleContext().addServiceListener(new LoggingServiceListener());
@@ -159,7 +158,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
 
     public void stopFramework() {
         try {
-            System.out.println("Stopping framework ...");
+            log.info("Stopping framework ...");
             getFramework().stop();
             getFramework().waitForStop(0);
         } catch (Exception ex) {
@@ -167,10 +166,10 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
     }
     
-    @BeforeSuite
+    @BeforeSuite(alwaysRun=true, timeOut=30000, groups={"generic-osgi-start"})
     public void init() {
         try {
-            files = MavenHelper.getProvidedArtifacts();
+            files.addAll(MavenHelper.getProvidedArtifacts());
         } catch (Exception ex) {
             fail("Unable to get deployment artifacts", ex);
         }
@@ -180,7 +179,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
         startFramework();
     }
     
-    @AfterSuite
+    @AfterSuite(alwaysRun=true, timeOut=30000, groups={"generic-osgi-stop"})
     public void shutdown() {
         stopFramework();
         files.clear();
@@ -190,7 +189,8 @@ public abstract class OSGiTestSupport<T extends Framework> {
     protected void logTest()
     {
         StackTraceElement test = Thread.currentThread().getStackTrace()[2];
-        System.out.println("Executing test " + test.getClassName() + "::" + test.getMethodName() + " ...");
+        log.log(Level.INFO, "Executing test {0}::{1} ...",
+                new Object[]{test.getClassName(), test.getMethodName()});
     }
 
     /**
@@ -202,7 +202,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
      * @throws BundleException
      * @throws IOException
      */
-    @Test
+    @Test(groups={"generic-osgi", "generic-osgi-startup"})
     public void testInstallBundles() throws Exception {
         logTest();
         BundleContext bundleContext = getFramework().getBundleContext();
@@ -216,8 +216,8 @@ public abstract class OSGiTestSupport<T extends Framework> {
                 fail("Bundle " + toString(bundle) + " is not installed.");
             }
 
-            System.out.println("... installed bundle " + toString(bundle)
-                    + " (" + bundle.getLocation() + ")");
+            log.log(Level.INFO, "... installed bundle {0} ({1})",
+                    new Object[]{toString(bundle), bundle.getLocation()});
         }
     }
 
@@ -227,16 +227,18 @@ public abstract class OSGiTestSupport<T extends Framework> {
      * @throws BundleException
      * @throws IOException
      */
-    @Test(dependsOnMethods = {"testInstallBundles"})
+    @Test(dependsOnMethods={"testInstallBundles"},
+            groups={"generic-osgi", "generic-osgi-startup"})
     public void testStartBundles() throws Exception {
         logTest();
         Thread.sleep(500);
         for(final Bundle bundle : bundles) {
             if(isFragment(bundle)) {
-                System.out.println("Skipping fragment bundle " + toString(bundle) + " (will be resolved by its host)...");
+                log.log(Level.INFO, "Skipping fragment bundle {0} (will be resolved by its host)...",
+                        toString(bundle));
                 continue;
             }
-            System.out.println("Starting bundle " + toString(bundle) + " ...");
+            log.log(Level.INFO, "Starting bundle {0} ...", toString(bundle));
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -251,7 +253,8 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
     }
 
-    @Test(dependsOnMethods = {"testStartBundles"})
+    @Test(dependsOnMethods={"testStartBundles"},
+            groups={"generic-osgi", "generic-osgi-startup"})
     public void testBundlesStarted()
             throws Exception
     {
@@ -276,21 +279,22 @@ public abstract class OSGiTestSupport<T extends Framework> {
             if(isFragment(bundle)) {
                 assert bundle.getState() == Bundle.RESOLVED : "Fragment bundle " + toString(bundle)
                         + " has not been resolved.";
-                System.out.println("... resolved fragment " + toString(bundle));
+                log.log(Level.INFO, "... resolved fragment {0}", toString(bundle));
             } else {
                 assert bundle.getState() == Bundle.ACTIVE : "Bundle " + toString(bundle)
                         + " has not been started.";
-                System.out.println("... started bundle " + toString(bundle));
+                log.log(Level.INFO, "... started bundle {0}", toString(bundle));
             }
         }
     }
 
-    @Test(dependsOnMethods = {"testBundlesStarted"})
+    @Test(timeOut=10000, dependsOnMethods={"testBundlesStarted"},
+            groups={"generic-osgi", "generic-osgi-startup"})
     public void testServicesAvailable()
             throws Exception
     {
         logTest();
         
-        waitForServices(30000);
+        waitForServices();
     }
 }
