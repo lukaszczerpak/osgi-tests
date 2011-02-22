@@ -19,13 +19,15 @@ package org.ancoron.osgi.test.glassfish;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.ancoron.osgi.test.felix.FelixTestSupport;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
@@ -37,11 +39,11 @@ public class GlassfishTestSupport extends FelixTestSupport {
     
     private static final String GF_DIR_PROP = "glassfish.install.dir";
     private static final String GF_VER_PROP = "glassfish.version";
+    
+    private static final Logger log = Logger.getLogger("GlassFishTest");
 
     private Bundle glassfish = null;
     private Object glassfishService = null;
-    
-    private Map<String, String> services = new HashMap<String, String>();
     
     protected File getGlassfishDir() {
         String path = System.getProperty(GF_DIR_PROP);
@@ -99,7 +101,7 @@ public class GlassfishTestSupport extends FelixTestSupport {
 
         File gf = getGlassfishBundle();
         
-        System.out.println("Starting GlassFish using " + gf.getAbsolutePath() + " ...");
+        log.log(Level.INFO, "Starting GlassFish using {0} ...", gf.getAbsolutePath());
         glassfish = installBundle(gf, getFramework().getBundleContext());
 
         try {
@@ -111,7 +113,8 @@ public class GlassfishTestSupport extends FelixTestSupport {
 
         String gfService = "org.glassfish.embeddable.GlassFish";
         services.put(gfService, null);
-        waitForServices(10000);
+        waitForServices();
+        services.clear();
         
         ServiceReference ref = ctx.getServiceReference(gfService);
         
@@ -120,12 +123,11 @@ public class GlassfishTestSupport extends FelixTestSupport {
         
         try {
             Object status = invokeGlassfishService("getStatus", Object.class);
-            System.out.println("GlassFish status: " + status);
+            log.log(Level.INFO, "GlassFish status: {0}", status);
         } catch (Exception ex) {
             fail("Unable to get status of GlassFish", ex);
         }
         
-        services.clear();
     }
     
     protected <T> T invokeGlassfishService(String method, Class<T> returnType) {
@@ -154,5 +156,16 @@ public class GlassfishTestSupport extends FelixTestSupport {
         }
         
         super.stopFramework();
+    }
+
+    @Test(dependsOnGroups={"generic-osgi-startup", "felix-osgi-startup"})
+    public void testInstanceLocation() {
+        File f = new File(System.getProperty("com.sun.aas.instanceRoot"), "logs/server.log");
+        
+        if(!f.exists()) {
+            fail("Server log not found at " + f.getAbsolutePath());
+        } else {
+            log.log(Level.INFO, "Server log available at {0}", f.getAbsolutePath());
+        }
     }
 }

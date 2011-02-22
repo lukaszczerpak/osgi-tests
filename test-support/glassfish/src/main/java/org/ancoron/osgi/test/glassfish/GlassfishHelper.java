@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
@@ -36,6 +38,8 @@ public class GlassfishHelper {
     
     private final static int BUFFER = 4 * 1024;
     private final static String DOWNLOAD_BASE;
+    
+    private static final Logger log = Logger.getLogger("glassfishtest");
     
     static {
         String dlProp = System.getProperty(GlassfishConfig.DOWNLOAD_URL);
@@ -112,7 +116,7 @@ public class GlassfishHelper {
         final File domainDir = getDomainDir();
         
         if(!domainDir.exists()) {
-            System.out.println("Preparing GlassFish domain: " + domainDir.getCanonicalPath());
+            log.log(Level.INFO, "Preparing GlassFish domain: {0}", domainDir.getCanonicalPath());
             domainDir.mkdirs();
             File orig = new File(installPath, "glassfish3/glassfish/domains/domain1");
             FileUtils.copyDirectory(orig, domainDir, false);
@@ -147,8 +151,8 @@ public class GlassfishHelper {
     }
 
     public static void unzip(String zipFile, String targetPath) throws IOException {
-        System.out.println("Extracting " + zipFile + " ...");
-        System.out.println("...target directory: " + targetPath);
+        log.log(Level.INFO, "Extracting {0} ...", zipFile);
+        log.log(Level.INFO, "...target directory: {0}", targetPath);
         File path = new File(targetPath);
         path.delete();
         path.mkdirs();
@@ -179,7 +183,7 @@ public class GlassfishHelper {
     }
 
     public static void download(String url, String toFile) throws MalformedURLException, IOException {
-        System.out.println("Downloading " + url + " ...");
+        log.log(Level.INFO, "Downloading {0} ...", url);
         
         long startTime = System.currentTimeMillis();
 
@@ -198,7 +202,7 @@ public class GlassfishHelper {
             int totalBytesRead = 0;
             int bytesRead = 0;
 
-            // System.out.println("Reading ZIP file 150KB blocks at a time.\n");
+            // log.info("Reading ZIP file 150KB blocks at a time.\n");
 
             while ((bytesRead = reader.read(buffer)) > 0) {
                 writer.write(buffer, 0, bytesRead);
@@ -207,9 +211,9 @@ public class GlassfishHelper {
 
             long endTime = System.currentTimeMillis();
 
-            System.out.println("Done. " + (new Integer(totalBytesRead).toString())
-                    + " bytes read (" + (new Long(endTime - startTime).toString())
-                    + " milliseconds).\n");
+            log.log(Level.INFO, "Done. {0} bytes read ({1} milliseconds).",
+                    new Object[]{new Integer(totalBytesRead).toString(),
+                        new Long(endTime - startTime).toString()});
         } finally {
             writer.close();
             reader.close();
