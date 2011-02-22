@@ -104,8 +104,6 @@
                     <configuration>
                         <systemPropertyVariables>
                             <maven.repo>${settings.localRepository}</maven.repo>
-                            <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
-                            <glassfish.version>${glassfish.version}</glassfish.version>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
