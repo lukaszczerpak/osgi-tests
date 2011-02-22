@@ -60,11 +60,17 @@ public class GlassfishTestSupport extends FelixTestSupport {
         }
 
         File gfDir = getGlassfishDir();
+        String dir = gfDir.getCanonicalPath();
         boolean install = !gfDir.exists();
         
         if(install) {
-            GlassfishHelper.installGlassfish(gfDir.getCanonicalPath(), version);
+            GlassfishHelper.installGlassfish(dir, version);
         }
+        
+        System.setProperty("com.sun.aas.installRoot", dir + "/glassfish3/glassfish/");
+        System.setProperty("com.sun.aas.installRootURI", "file://" + dir + "/glassfish3/glassfish/");
+        
+        GlassfishHelper.configureGlassfish(gfDir.getCanonicalPath());
     }
     
     protected File getGlassfishBundle() {
@@ -72,23 +78,34 @@ public class GlassfishTestSupport extends FelixTestSupport {
     }
 
     @Override
-    public void startFramework() {
-        super.startFramework();
+    public void customizeFrameworkConfig(Map configMap) {
         try {
             prepare();
         } catch (IOException ex) {
             fail("Unable to prepare GlassFish", ex);
         }
         
+        configMap.put("com.sun.aas.installRoot", System.getProperty("com.sun.aas.installRoot"));
+        configMap.put("com.sun.aas.instanceRoot", System.getProperty("com.sun.aas.instanceRoot"));
+        configMap.put("com.sun.aas.installRootURI", System.getProperty("com.sun.aas.installRootURI"));
+
+        super.customizeFrameworkConfig(configMap);
+    }
+
+    @Override
+    public void startFramework() {
+        super.startFramework();
+        BundleContext ctx = getFramework().getBundleContext();
+
         File gf = getGlassfishBundle();
         
         System.out.println("Starting GlassFish using " + gf.getAbsolutePath() + " ...");
-        
         glassfish = installBundle(gf, getFramework().getBundleContext());
 
         try {
+            // glassfish = getFramework().getBundleContext().installBundle(gf.getCanonicalPath());
             glassfish.start(Bundle.START_TRANSIENT);
-        } catch (BundleException ex) {
+        } catch (Exception ex) {
             fail("Unable to start GlassFish", ex);
         }
 
@@ -96,7 +113,6 @@ public class GlassfishTestSupport extends FelixTestSupport {
         services.put(gfService, null);
         waitForServices(10000);
         
-        BundleContext ctx = getFramework().getBundleContext();
         ServiceReference ref = ctx.getServiceReference(gfService);
         
         glassfishService = ctx.getService(ref);
