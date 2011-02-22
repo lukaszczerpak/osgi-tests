@@ -16,6 +16,8 @@
 
 package org.ancoron.osgi.test.felix;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -29,6 +31,7 @@ import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.cache.BundleCache;
 import org.apache.felix.framework.util.StringMap;
 import org.apache.felix.framework.util.Util;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
@@ -39,6 +42,7 @@ import static org.testng.Assert.*;
 public class FelixTestSupport extends OSGiTestSupport<Felix> {
     
     private final Pattern UNRESOLVED = Pattern.compile(".*$\\{(.+)\\}.*");
+    private static final Logger log = Logger.getLogger("FelixTest");
 
     /**
      * A simple  method to customize the configuration for Felix to meet your
@@ -53,7 +57,8 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
         
         if(config.exists()) {
             try {
-                System.out.println("Loading Felix configuration from " + config.getCanonicalPath());
+                log.log(Level.INFO, "Loading Felix configuration from {0}",
+                        config.getCanonicalPath());
                 URL configUrl = config.toURI().toURL();
 
                 Properties props = new Properties();
@@ -86,12 +91,12 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
                     configMap.put(name, value);
                 }
                 
-                System.out.println("Configured " + configMap.size() + " properties");
+                log.log(Level.INFO, "Configured {0} properties", configMap.size());
             } catch(Exception x) {
                 fail("Unable to load Felix configuration", x);
             }
         } else {
-            System.out.println("No Felix configuration available at " + config.getAbsolutePath());
+            log.log(Level.WARNING, "No Felix configuration available at {0}", config.getAbsolutePath());
         }
     }
 
@@ -114,5 +119,12 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
         }
 
         setFramework(new Felix(configMap));
+    }
+
+    @Test(timeOut=10000, groups={"felix-osgi-startup"}, dependsOnGroups={"generic-osgi-startup"})
+    public void testFelixServices() {
+        services.put(org.osgi.service.packageadmin.PackageAdmin.class.getName(), null);
+        waitForServices();
+        services.clear();
     }
 }
