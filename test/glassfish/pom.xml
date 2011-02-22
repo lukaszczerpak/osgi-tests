@@ -11,6 +11,11 @@
     <packaging>jar</packaging>
 
     <name>GlassFish OSGi Tests</name>
+    
+    <properties>
+        <glassfish.version>3.1-b41</glassfish.version>
+        <glassfish.install.dir>/srv/servers/glassfish/tests</glassfish.install.dir>
+    </properties>
 
     <dependencies>
         <dependency>
