@@ -21,6 +21,13 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>bundles-simple</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -34,6 +41,9 @@
                         <Export-Package>
                             ${project.groupId}.fragments.simple;version=${project.version}
                         </Export-Package>
+                        <Import-Package>
+                            ${project.groupId}.simple;version=${project.version}
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
