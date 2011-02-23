@@ -253,7 +253,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
     }
 
-    @Test(dependsOnMethods={"testStartBundles"},
+    @Test(timeOut=30000, dependsOnMethods={"testStartBundles"},
             groups={"generic-osgi", "generic-osgi-startup"})
     public void testBundlesStarted()
             throws Exception
@@ -273,7 +273,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
             ctx.addBundleListener(tracker);
         }
         
-        exec.invokeAll(trackers, 10, TimeUnit.SECONDS);
+        exec.invokeAll(trackers);
         
         for(Bundle bundle : bundles) {
             if(isFragment(bundle)) {
