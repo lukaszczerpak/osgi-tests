@@ -123,6 +123,7 @@ public class FelixTestSupport extends OSGiTestSupport<Felix> {
 
     @Test(timeOut=10000, groups={"felix-osgi-startup"}, dependsOnGroups={"generic-osgi-startup"})
     public void testFelixServices() {
+        logTest();
         services.put(org.osgi.service.packageadmin.PackageAdmin.class.getName(), null);
         waitForServices();
         services.clear();
