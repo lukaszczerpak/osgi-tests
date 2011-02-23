@@ -18,6 +18,8 @@ package org.ancoron.osgi.test;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -26,6 +28,8 @@ import org.osgi.framework.ServiceReference;
  * @author ancoron
  */
 public class ServiceAvailabilityChecker implements Callable<Boolean> {
+
+    private static final Logger log = Logger.getLogger("GenericOSGiServices");
 
     private final BundleContext ctx;
     private final Map<String, String> services;
@@ -55,9 +59,9 @@ public class ServiceAvailabilityChecker implements Callable<Boolean> {
             try {
                 svcs = ctx.getServiceReferences(clazz, filter);
             } catch (Exception ex) {
-                System.err.println("Unable to check service availability for class '"
-                        + clazz + "' (filter=" + filter + ")");
-                ex.printStackTrace(System.err);
+                log.log(Level.WARNING,
+                        "Unable to check service availability for class ''{0}'' (filter={1})",
+                        new Object[]{clazz, filter});
             }
             
             ready = false;

@@ -41,6 +41,7 @@ import javax.xml.stream.events.XMLEvent;
  */
 public class POMReader
 {
+    private static final Logger log = Logger.getLogger("MavenPOMReader");
 
     private static final String ELEMENT_PROJECT = "project";
     private static final String ELEMENT_PARENT = "parent";
@@ -52,8 +53,6 @@ public class POMReader
     private static final String ELEMENT_DEPENDENCY = "dependency";
     private static final String ELEMENT_DEPENDENCYMGMT = "dependencyManagement";
     private static final String ELEMENT_PROPERTIES = "properties";
-
-    private static final String LOG_PREFIX = "[POMReader] ";
 
     private final XMLInputFactory inputFactory;
     private final String xmlFile;
@@ -102,7 +101,7 @@ public class POMReader
                     file = new File(mavenRepo, path);
                 }
 
-                System.out.println(LOG_PREFIX + "Analyzing dependency '" + file.getAbsolutePath() + "' ...");
+                log.log(Level.INFO, "Analyzing dependency ''{0}'' ...", file.getAbsolutePath());
                 if (!file.exists()) {
                     throw new IllegalArgumentException("Unable to resolve dependency: " + path);
                 }
@@ -182,8 +181,8 @@ public class POMReader
                     }
                 }
             } catch (IOException ex) {
-                Logger.getLogger(POMReader.class.getName()).log(Level.SEVERE,
-                        "Unable to load parent pom from '" + parentPom.getAbsolutePath() + "'", ex);
+                log.log(Level.SEVERE, "Unable to load parent pom from '"
+                        + parentPom.getAbsolutePath() + "'", ex);
             }
 
             project = parent;
@@ -226,9 +225,8 @@ public class POMReader
 
                 dependency[3] = dependency[3] == null ? "compile" : dependency[3];
 
-                System.out.println("Parsed dependency " + dependency[0]
-                        + ":" + dependency[1] + ":" + dependency[2] + ":"
-                        + dependency[3] + " ...");
+                log.log(Level.INFO, "Parsed dependency {0}:{1}:{2}:{3} ...",
+                        new Object[]{dependency[0], dependency[1], dependency[2], dependency[3]});
                 String path = dependency[0].replaceAll("\\.", "/") + "/"
                         + dependency[1] + "/" + dependency[2] + "/"
                         + dependency[1] + "-" + dependency[2] + ".jar";
@@ -260,9 +258,8 @@ public class POMReader
 
                 dependency[3] = dependency[3] == null ? "compile" : dependency[3];
 
-                System.out.println("Parsed managed dependency " + dependency[0]
-                        + ":" + dependency[1] + ":" + dependency[2] + ":"
-                        + dependency[3] + " ...");
+                log.log(Level.INFO, "Parsed managed dependency {0}:{1}:{2}:{3} ...",
+                        new Object[]{dependency[0], dependency[1], dependency[2], dependency[3]});
 
                 managedDeps.add(dependency);
             }

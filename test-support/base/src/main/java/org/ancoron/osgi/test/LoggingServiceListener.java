@@ -17,6 +17,7 @@
 package org.ancoron.osgi.test;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
@@ -28,6 +29,8 @@ import org.osgi.framework.ServiceReference;
  */
 public class LoggingServiceListener implements ServiceListener {
 
+    private static final Logger log = Logger.getLogger("GenericOSGiListener");
+
     @Override
     public void serviceChanged(ServiceEvent event) {
         StringBuilder sb = new StringBuilder(512);
@@ -36,7 +39,7 @@ public class LoggingServiceListener implements ServiceListener {
         sb.append("] ");
         append(sb, event.getServiceReference());
         
-        System.out.println(sb.toString());
+        log.info(sb.toString());
     }
     
     protected String toString(int eventType) {
