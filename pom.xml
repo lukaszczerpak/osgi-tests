@@ -46,6 +46,7 @@
     </properties>
 
     <modules>
+        <module>bundles</module>
         <module>fragments</module>
         <module>test-support</module>
         <module>test</module>
