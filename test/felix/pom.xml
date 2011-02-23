@@ -15,6 +15,13 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>bundles-simple</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>fragments-simple-host</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
