@@ -34,7 +34,7 @@ public class ServiceAvailabilityChecker implements Callable<Boolean> {
     private final BundleContext ctx;
     private final Map<String, String> services;
     
-    public ServiceAvailabilityChecker(Map<String, String> services, BundleContext ctx) {
+    public ServiceAvailabilityChecker(Map<String, String> services, final BundleContext ctx) {
         this.services = services;
         this.ctx = ctx;
     }
