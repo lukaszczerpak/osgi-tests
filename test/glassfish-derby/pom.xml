@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.ancoron.osgi.test</groupId>
+        <artifactId>test</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>test-glassfish-derby</artifactId>
+    <packaging>jar</packaging>
+
+    <name>GlassFish OSGi Tests incl. Derby</name>
+    
+    <properties>
+        <glassfish.version>3.1-b41</glassfish.version>
+        <glassfish.install.dir>/srv/servers/glassfish/tests</glassfish.install.dir>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>bundles-simple</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>fragments-simple-host</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>fragments-simple-fragment</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>test-support-glassfish</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.7.1</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <maven.repo>${settings.localRepository}</maven.repo>
+                            <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
+                            <glassfish.version>${glassfish.version}</glassfish.version>
+                        </systemPropertyVariables>
+                        <argLine>-server</argLine>
+                        <argLine>-Djava.endorsed.dirs=${glassfish.install.dir}/glassfish3/glassfish/modules/endorsed:${glassfish.install.dir}/glassfish3/glassfish/lib/endorsed</argLine>
+                    </configuration>
+                </plugin>
+        </plugins>
+    </build>
+</project>
