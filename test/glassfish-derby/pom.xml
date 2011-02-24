@@ -41,6 +41,13 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>bundles-ejb-slsb</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>test-support-glassfish</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

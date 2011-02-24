@@ -16,10 +16,21 @@
 
 package org.ancoron.osgi.test.glassfish;
 
+import org.ancoron.osgi.test.ejb.slsb.SLSBInterface;
+import org.testng.annotations.Test;
+
 /**
  *
  * @author ancoron
  */
 public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
 
+    @Test(timeOut=30000, dependsOnGroups={"glassfish-osgi-startup"})
+    public void testSLSBService() {
+        services.put(SLSBInterface.class.getName(), null);
+        
+        waitForServices();
+        
+        services.clear();
+    }
 }
