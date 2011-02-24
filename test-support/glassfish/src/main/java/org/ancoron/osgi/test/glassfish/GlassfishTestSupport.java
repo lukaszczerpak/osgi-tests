@@ -19,6 +19,9 @@ package org.ancoron.osgi.test.glassfish;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -128,6 +131,48 @@ public class GlassfishTestSupport extends FelixTestSupport {
             fail("Unable to get status of GlassFish", ex);
         }
         
+        autostart();
+    }
+    
+    protected void autostart() {
+        log.log(Level.INFO, "Starting GlassFish autostart modules...");
+        
+        String dir = System.getProperty("com.sun.aas.installRoot");
+        File gfRoot = new File(dir);
+        
+        if(gfRoot.exists() && gfRoot.isDirectory()) {
+            final BundleContext ctx = getFramework().getBundleContext();
+            File[] modules = new File(gfRoot, "modules/autostart").listFiles();
+            
+            List<Bundle> auto = new ArrayList<Bundle>();
+            for(File module : modules) {
+                if(module.getName().endsWith(".jar")) {
+                    auto.add(installBundle(module, ctx));
+                }
+            }
+            
+            for(Iterator<Bundle> it = auto.iterator(); it.hasNext(); ) {
+                Bundle b = it.next();
+                if(b.getSymbolicName().equals("org.glassfish.osgi-javaee-base")) {
+                    try {
+                        b.start(Bundle.START_TRANSIENT);
+                        
+                        it.remove();
+                    } catch (BundleException ex) {
+                        log.log(Level.WARNING, "Unable to start bundle " + toString(b), ex);
+                    }
+                    break;
+                }
+            }
+
+            for(Bundle b : auto) {
+                try {
+                    b.start(Bundle.START_TRANSIENT);
+                } catch (BundleException ex) {
+                    log.log(Level.WARNING, "Unable to start bundle " + toString(b), ex);
+                }
+            }
+        }
     }
     
     protected <T> T invokeGlassfishService(String method, Class<T> returnType) {
