@@ -16,7 +16,15 @@
 
 package org.ancoron.osgi.test.glassfish;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.logging.Logger;
 import org.ancoron.osgi.test.ejb.slsb.SLSBInterface;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.Test;
 
 /**
@@ -25,12 +33,61 @@ import org.testng.annotations.Test;
  */
 public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
 
-    @Test(timeOut=30000, dependsOnGroups={"glassfish-osgi-startup"})
+    private static final Logger log = Logger.getLogger(GlassfishDerbyTest.class.getName());
+    private final List<String> logLines = new ArrayList<String>();
+
+    @Test(timeOut=10000, dependsOnGroups={"glassfish-osgi-startup"})
     public void testSLSBService() {
+        logTest();
+
         services.put(SLSBInterface.class.getName(), null);
         
         waitForServices();
         
         services.clear();
+    }
+    
+    
+    @Override
+    public void stopFramework() {
+        BundleContext ctx = getFramework().getBundleContext();
+        List<Bundle> b = new ArrayList<Bundle>();
+        for(final Bundle bundle : ctx.getBundles()) {
+            b.add(bundle);
+        }
+        
+        Collections.sort(b, new BundleComparator());
+
+        for(Bundle tmp : b) {
+            logLines.add(String.format("[%4d][%11s] %s", tmp.getBundleId(), toString(tmp.getState()), tmp.getSymbolicName()));
+        }
+
+        super.stopFramework();
+    }
+
+    public class BundleComparator implements Comparator<Bundle> {
+
+        @Override
+        public int compare(Bundle o1, Bundle o2) {
+            if(o1.getBundleId() == o2.getBundleId()) {
+                return 0;
+            } else if(o1.getBundleId() < o2.getBundleId()) {
+                return -1;
+            }
+            return 1;
+        }
+    }
+    
+    @AfterSuite(alwaysRun=true)
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        
+        StringBuilder sb = new StringBuilder();
+        for(String tmp : logLines) {
+            sb.append("\n").append(tmp);
+        }
+        
+        log.info(sb.toString());
     }
 }
