@@ -16,5 +16,6 @@
     <modules>
         <module>felix</module>
         <module>glassfish</module>
+        <module>glassfish-derby</module>
     </modules>
 </project>
