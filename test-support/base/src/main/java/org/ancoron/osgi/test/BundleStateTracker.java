@@ -17,6 +17,8 @@
 package org.ancoron.osgi.test;
 
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -27,9 +29,11 @@ import org.osgi.framework.BundleListener;
  */
 public class BundleStateTracker implements Callable<Boolean>, BundleListener {
 
+    private static final Logger log = Logger.getLogger("BundleStateTracker");
+    
     private final int state;
     private final long bundleId;
-    private int currentState;
+    private boolean ready = false;
     
     public BundleStateTracker(long bundleId, int state) {
         this.bundleId = bundleId;
@@ -38,39 +42,46 @@ public class BundleStateTracker implements Callable<Boolean>, BundleListener {
     
     @Override
     public Boolean call() throws Exception {
-        while(currentState != state) {
+        while(!ready) {
             Thread.sleep(100);
         }
+        
+        log.log(Level.INFO, "Bundle [{0}] reached target state {1}",
+                new Object[]{bundleId, toString(state)});
+
         return Boolean.TRUE;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+    
+    protected String toString(int bundleState) {
+        switch(bundleState) {
+            case Bundle.ACTIVE:
+                return "ACTIVE";
+            case Bundle.INSTALLED:
+                return "INSTALLED";
+            case Bundle.RESOLVED:
+                return "RESOLVED";
+            case Bundle.STARTING:
+                return "STARTING";
+            case Bundle.STOPPING:
+                return "STOPPING";
+            case Bundle.UNINSTALLED:
+                return "UNINSTALLED";
+            default:
+                return "UNKNOWN";
+        }
     }
 
     @Override
     public void bundleChanged(BundleEvent event) {
         if(event.getBundle().getBundleId() == bundleId) {
-            switch(event.getType()) {
-                case BundleEvent.INSTALLED:
-                    currentState = Bundle.INSTALLED;
-                    break;
-                case BundleEvent.RESOLVED:
-                    currentState = Bundle.RESOLVED;
-                    break;
-                case BundleEvent.STARTING:
-                    currentState = Bundle.STARTING;
-                    break;
-                case BundleEvent.STARTED:
-                    currentState = Bundle.ACTIVE;
-                    break;
-                case BundleEvent.STOPPING:
-                    currentState = Bundle.STOPPING;
-                    break;
-                case BundleEvent.STOPPED:
-                    currentState = event.getBundle().getState();
-                    break;
-                case BundleEvent.UNINSTALLED:
-                    currentState = Bundle.UNINSTALLED;
-                    break;
-                default:
-                    break;
+            if(event.getType() == state) {
+                log.log(Level.INFO, "Bundle [{0}] reached target state {1}",
+                        new Object[]{bundleId, toString(state)});
+                ready = true;
             }
         }
     }

@@ -20,20 +20,25 @@ import java.io.IOException;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
@@ -53,6 +58,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
 
     protected final List<File> files = new ArrayList<File>();
     protected final List<Bundle> bundles = new ArrayList<Bundle>();
+    protected final List<BundleStateTracker> trackers = new ArrayList<BundleStateTracker>();
     protected final Map<String, String> services = new HashMap<String, String>();
 
     public T getFramework() {
@@ -68,20 +74,18 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
 
     protected Bundle installBundle(File bundlePath, BundleContext bundleContext) {
-        Bundle bundle = null;
-
         if (!bundlePath.exists()) {
             log.log(Level.WARNING, "File does not exist: {0}", bundlePath.getAbsolutePath());
         } else {
             log.log(Level.INFO, "Installing artifact {0} ...", bundlePath.getAbsolutePath());
             try {
-                bundle = bundleContext.installBundle("file://" + bundlePath.getCanonicalPath());
+                return bundleContext.installBundle("file://" + bundlePath.getCanonicalPath());
             } catch (Exception ex) {
-                 fail("Installing bundle " + toString(bundle) + " failed", ex);
+                 fail("Installing bundle at " + bundlePath.getAbsolutePath() + " failed", ex);
             }
         }
 
-        return bundle;
+        return null;
     }
     
     protected void uninstallBundle(Bundle bundle) {
@@ -211,7 +215,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
             bundles.add(installBundle(modulePath, bundleContext));
         }
 
-        for(Bundle bundle : bundles) {
+        for(final Bundle bundle : bundles) {
             if(bundle.getState() != Bundle.INSTALLED) {
                 fail("Bundle " + toString(bundle) + " is not installed.");
             }
@@ -231,25 +235,24 @@ public abstract class OSGiTestSupport<T extends Framework> {
             groups={"generic-osgi", "generic-osgi-startup"})
     public void testStartBundles() throws Exception {
         logTest();
-        Thread.sleep(500);
+        final BundleContext ctx = getFramework().getBundleContext();
         for(final Bundle bundle : bundles) {
             if(isFragment(bundle)) {
                 log.log(Level.INFO, "Skipping fragment bundle {0} (will be resolved by its host)...",
                         toString(bundle));
                 continue;
             }
+
             log.log(Level.INFO, "Starting bundle {0} ...", toString(bundle));
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        bundle.start();
-                    } catch(Exception x) {
-                        System.err.println("Unable to start bundle in the first place: "
-                                + bundle.getSymbolicName());
-                    }
-                }
-            }).start();
+
+            try {
+                ctx.addBundleListener(new BundleStateTracker(
+                        bundle.getBundleId(), Bundle.ACTIVE));
+                bundle.start();
+            } catch(Exception x) {
+                log.log(Level.WARNING, "Unable to start bundle in the first place: "
+                        + bundle.getSymbolicName(), x);
+            }
         }
     }
 
@@ -260,34 +263,184 @@ public abstract class OSGiTestSupport<T extends Framework> {
     {
         logTest();
         
-        BundleContext ctx = getFramework().getBundleContext();
         ExecutorService exec = Executors.newFixedThreadPool(bundles.size());
-        Set<BundleStateTracker> trackers = new HashSet<BundleStateTracker>();
-        for(Bundle bundle : bundles) {
-            BundleStateTracker tracker = null;
-            if(isFragment(bundle)) {
-                tracker = new BundleStateTracker(bundle.getBundleId(), Bundle.RESOLVED);
-            } else {
-                tracker = new BundleStateTracker(bundle.getBundleId(), Bundle.ACTIVE);
-            }
-            ctx.addBundleListener(tracker);
+        for(Future<Boolean> fute : exec.invokeAll(trackers)) {
+            fute.get();
         }
         
-        exec.invokeAll(trackers);
-        
-        for(Bundle bundle : bundles) {
+        for(final Bundle bundle : bundles) {
+            int state = bundle.getState();
             if(isFragment(bundle)) {
-                assert bundle.getState() == Bundle.RESOLVED : "Fragment bundle " + toString(bundle)
-                        + " has not been resolved.";
-                log.log(Level.INFO, "... resolved fragment {0}", toString(bundle));
+                if(state != Bundle.RESOLVED) {
+                    fail("Fragment bundle " + toString(bundle) + " has not been resolved: "
+                        + unresolvableReason(bundle));
+                } else {
+                    log.log(Level.INFO, "... resolved fragment {0}", toString(bundle));
+                }
             } else {
-                assert bundle.getState() == Bundle.ACTIVE : "Bundle " + toString(bundle)
-                        + " has not been started.";
-                log.log(Level.INFO, "... started bundle {0}", toString(bundle));
+                if(state != Bundle.ACTIVE) {
+                    fail("Bundle " + toString(bundle) + " has not been started (state="
+                            + toString(state) + ")");
+                } else {
+                    log.log(Level.INFO, "... started bundle {0}", toString(bundle));
+                }
             }
         }
     }
+    
+    protected String toString(int bundleState) {
+        switch(bundleState) {
+            case Bundle.ACTIVE:
+                return "ACTIVE";
+            case Bundle.INSTALLED:
+                return "INSTALLED";
+            case Bundle.RESOLVED:
+                return "RESOLVED";
+            case Bundle.STARTING:
+                return "STARTING";
+            case Bundle.STOPPING:
+                return "STOPPING";
+            case Bundle.UNINSTALLED:
+                return "UNINSTALLED";
+            default:
+                return "UNKNOWN";
+        }
+    }
+    
+    protected boolean isExtension(Bundle b) {
+        String host = (String) b.getHeaders().get(Constants.FRAGMENT_HOST);
+        
+        return host.matches("^.*;\\s*" + Constants.EXCLUDE_DIRECTIVE
+                + "\\s*:=[\\s\"']*(" + Constants.EXTENSION_FRAMEWORK + "|"
+                + Constants.EXTENSION_BOOTCLASSPATH + ")[\\s\"']*$");
+    }
 
+    protected String unresolvableReason(Bundle b) {
+        String msg = "Unknown reason";
+
+        final long id = b.getBundleId();
+        final String name = b.getSymbolicName();
+        final Version version = b.getVersion();
+        
+        Dictionary headers = b.getHeaders();
+        if(isFragment(b)) {
+            String host = (String) headers.get(Constants.FRAGMENT_HOST);
+            host = host.trim();
+            
+            if(isExtension(b)) {
+                Matcher m = Pattern.compile("^\\s*([^\\s].*[^\\s])\\s*;\\s*"
+                        + Constants.EXCLUDE_DIRECTIVE + "\\s*:=[\\s\"']*("
+                        + Constants.EXTENSION_FRAMEWORK + "|"
+                        + Constants.EXTENSION_BOOTCLASSPATH + ")[\\s\"']*$").matcher(host);
+
+                if(m.find()) {
+                    String bundleName = m.group(1);
+                    String extType = m.group(2);
+                    
+                    if(Constants.EXTENSION_BOOTCLASSPATH.equals(extType)) {
+                        // system extension...
+                        if(bundleName.equals(Constants.SYSTEM_BUNDLE_SYMBOLICNAME)) {
+                            return "The extension bundle didn't attach to the system bundle";
+                        } else {
+                            return "The boot classpath extension bundle should specify the host '"
+                                    + Constants.SYSTEM_BUNDLE_SYMBOLICNAME
+                                    + "' instead of '" + bundleName + "'";
+                        }
+                    } else {
+                        // framework extension...
+                        Set<Bundle> frm = getBundlesBySymbolicName(bundleName);
+                        if(frm.isEmpty()) {
+                            return "The current framework is '"
+                                    + getFramework().getSymbolicName()
+                                    + "' and not '" + bundleName + "'";
+                        } else {
+                            Bundle f = frm.iterator().next();
+                            if(f.getBundleId() != 0) {
+                                return "The specified host bundle " + toString(f)
+                                        + " is not the framework bundle, which is "
+                                        + toString(getFramework());
+                            }
+                        }
+                    }
+                }
+                
+                return "The extension bundle declaration '" + host + "' is invalid";
+            }
+            
+            Set<Bundle> found = getBundlesBySymbolicName(host);
+            
+            if(found.isEmpty()) {
+                return "Bundle header '" + Constants.FRAGMENT_HOST + "' with value '"
+                        + host + "' didn't resolve to any installed bundle";
+            } else if(found.iterator().next().getBundleId() == id) {
+                return "Cannot attach fragment to itself";
+            } else {
+                // check imports...
+                List<PackageImport> imports = getBundleImports(b);
+                for(Bundle tmp : getFramework().getBundleContext().getBundles()) {
+                    for(PackageExport exp : getBundleExports(tmp)) {
+                        for(Iterator<PackageImport> it = imports.iterator(); it.hasNext(); ) {
+                            PackageImport imp = it.next();
+                            if(imp.canImport(exp)) {
+                                log.log(Level.INFO, "Import {0} specified by {1} is satisfied by bundle {2}",
+                                        new Object[]{imp.toString(), toString(b), toString(tmp)});
+                                it.remove();
+                            }
+                        }
+                    }
+                }
+                
+                if(!imports.isEmpty()) {
+                    // all remaining imports have not been satisfied...
+                    msg = "The following package imports are unsatisfied:";
+                    for(PackageImport imp : imports) {
+                        msg += "\n" + imp.toString();
+                    }
+                    
+                    return msg;
+                }
+            }
+        }
+        
+        return msg;
+    }
+    
+    protected List<PackageImport> getBundleImports(Bundle b) {
+        List<PackageImport> imports = new ArrayList<PackageImport>();
+        
+        String header = (String) b.getHeaders().get(Constants.IMPORT_PACKAGE);
+        if(header != null) {
+            for(String imp : header.split(",")) {
+                imports.add(new PackageImport(imp.trim()));
+            }
+        }
+        
+        return imports;
+    }
+    
+    protected List<PackageExport> getBundleExports(Bundle b) {
+        List<PackageExport> exports = new ArrayList<PackageExport>();
+        
+        String header = (String) b.getHeaders().get(Constants.EXPORT_PACKAGE);
+        if(header != null) {
+            for(String exp : header.split(",")) {
+                exports.add(new PackageExport(exp.trim()));
+            }
+        }
+        
+        return exports;
+    }
+    
+    protected Set<Bundle> getBundlesBySymbolicName(String name) {
+        Set<Bundle> found = new HashSet<Bundle>();
+        for(Bundle tmp : getFramework().getBundleContext().getBundles()) {
+            if(name.startsWith(tmp.getSymbolicName())) {
+                found.add(tmp);
+            }
+        }
+        return found;
+    }
+    
     @Test(timeOut=10000, dependsOnMethods={"testBundlesStarted"},
             groups={"generic-osgi", "generic-osgi-startup"})
     public void testServicesAvailable()
