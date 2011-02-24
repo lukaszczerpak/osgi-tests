@@ -158,7 +158,7 @@ public class GlassfishTestSupport extends FelixTestSupport {
         super.stopFramework();
     }
 
-    @Test(dependsOnGroups={"generic-osgi-startup", "felix-osgi-startup"})
+    @Test(groups={"glassfish-osgi-startup"}, dependsOnGroups={"generic-osgi-startup", "felix-osgi-startup"})
     public void testInstanceLocation() {
         File f = new File(System.getProperty("com.sun.aas.instanceRoot"), "logs/server.log");
         

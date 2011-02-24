@@ -18,6 +18,7 @@ package org.ancoron.osgi.test.glassfish;
 
 import java.io.PrintWriter;
 import org.apache.derby.drda.NetworkServerControl;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
@@ -38,12 +39,20 @@ public class GlassfishDerbyTestSupport extends GlassfishTestSupport {
             // derby.setTraceDirectory("target/derby");
             // derby.trace(true);
             derby.logConnections(true);
-            derby.ping();
         } catch(Exception x) {
             fail("Unable to start derby network server", x);
         }
         
         super.startFramework();
+    }
+
+    @Test(groups={"glassfish-osgi-startup"}, dependsOnGroups={"felix-osgi-startup"})
+    public void testDerbyAvailable() {
+        try {
+            derby.ping();
+        } catch(Exception x) {
+            fail("Unable to connect to derby network server", x);
+        }
     }
 
     @Override
