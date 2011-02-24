@@ -24,6 +24,13 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>fragments-simple-host</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>bundles-simple</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -42,6 +49,7 @@
                             ${project.groupId}.fragments.simple;version=${project.version}
                         </Export-Package>
                         <Import-Package>
+                            ${project.groupId}.fragments.simple;version=${project.version},
                             ${project.groupId}.simple;version=${project.version}
                         </Import-Package>
                     </instructions>
