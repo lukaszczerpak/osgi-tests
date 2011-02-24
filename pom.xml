@@ -39,6 +39,7 @@
         
         <osgi.version>4.2.0</osgi.version>
         <testng.version>5.14.9</testng.version>
+        <derby.version>10.7.1.1</derby.version>
         <felix.framework.version>3.0.8</felix.framework.version>
         
         <!-- some helping libraries -->
@@ -70,6 +71,12 @@
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derbynet</artifactId>
+                <version>${derby.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
