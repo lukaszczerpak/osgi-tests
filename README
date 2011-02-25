@@ -6,13 +6,19 @@ bugs in basic OSGi frameworks like Apache Felix and/or in more
 sophisticated environments like GlassFish 3.1+ which supports many of the
 OSGi/JavaEE parts as of OSGi Service Platform Enterprise Specification.
 
-Features (as of 2011-02-22):
+Features (as of 2011-02-25):
 * Uses TestNG
 * Generic OSGi test support (abstract implementation)
 * Apache Felix OSGi test support (incl. custom configurations)
 * GlassFish 3.1 OSGi test support (based on Felix)
+* GlassFish 3.1 OSGi + Derby test support
 
 On my ToDo list currently:
 * Enhance customizability of the GlassFish instance
-* Add persistence test support (using Derby)
 * Add more test bundles to verify the GlassFish runtime
+
+In order to be able to customize the GlassFish domain directory you need
+to make sure that you either work directly on GlassFish trunk (rev. 45232
+or higher) or to apply the patch in following bug in a local build:
+
+* http://java.net/jira/browse/GLASSFISH-16081
