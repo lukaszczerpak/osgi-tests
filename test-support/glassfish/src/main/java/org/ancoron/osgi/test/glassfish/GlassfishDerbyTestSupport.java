@@ -34,6 +34,7 @@ public class GlassfishDerbyTestSupport extends GlassfishTestSupport {
     public void startFramework() {
         try {
             System.setProperty("derby.stream.error.file", "target/derby.log");
+            System.setProperty("derby.system.home", "target/derby");
             derby = new NetworkServerControl();
             derby.start(new PrintWriter(System.out));
             // derby.setTraceDirectory("target/derby");
