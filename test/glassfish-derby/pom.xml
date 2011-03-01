@@ -45,6 +45,76 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>org.ancoron.common</groupId>
+            <artifactId>common-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.common</groupId>
+            <artifactId>common-model</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.common</groupId>
+            <artifactId>common-persistence</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.common</groupId>
+            <artifactId>common-utils</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>client</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>persistence</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>jpa</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>ejb</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>pojo</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>

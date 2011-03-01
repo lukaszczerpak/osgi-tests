@@ -21,11 +21,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+import org.ancoron.movie.MovieService;
+import org.ancoron.movie.jpa.MovieJPAService;
+import org.ancoron.movie.persistence.MoviePersistenceException;
+import org.ancoron.movie.persistence.MoviePersistenceService;
 import org.ancoron.osgi.test.ejb.slsb.SLSBInterface;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  *
@@ -47,6 +53,37 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
         services.clear();
     }
     
+    @Test(timeOut=10000, dependsOnGroups={"glassfish-osgi-startup"})
+    public void testMovieServicesAvailability() {
+        logTest();
+        
+        services.put(MoviePersistenceService.class.getName(), null);
+        services.put(MovieJPAService.class.getName(), null);
+        services.put(MovieService.class.getName(), null);
+        
+        waitForServices();
+        
+        services.clear();
+    }
+    
+    @Test(timeOut=10000, dependsOnMethods={"testMovieServicesAvailability"})
+    public void testMoviePersistenceService() {
+        logTest();
+        
+        MoviePersistenceService movieService = getService(
+                MoviePersistenceService.class, null,
+                "org.ancoron.movie",
+                "org.ancoron.movie.model",
+                "org.ancoron.movie.persistence",
+                "org.ancoron.movie.persistence.model",
+                "org.ancoron.movie.jpa",
+                "org.ancoron.movie.jpa.entity");
+        try {
+            movieService.getAllVideos();
+        } catch (MoviePersistenceException ex) {
+            fail("Unexpected error during persistence service call", ex);
+        }
+    }
     
     @Override
     public void stopFramework() {
