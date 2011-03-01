@@ -141,6 +141,14 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
+        <repository>
+            <id>dynamicjava-repo</id>
+            <name>Repository for the DynamicJava artifacts</name>
+            <url>http://maven.dynamicjava.org/</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>
