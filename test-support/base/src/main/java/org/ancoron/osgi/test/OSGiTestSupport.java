@@ -34,10 +34,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.dynamicjava.api_bridge.ApiBridge;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.testng.annotations.AfterSuite;
@@ -130,6 +133,12 @@ public abstract class OSGiTestSupport<T extends Framework> {
 
     public void waitForServices() {
         if(services != null && !services.isEmpty()) {
+            waitForServices(services);
+        }
+    }
+    
+    public void waitForServices(Map<String, String> services) {
+        if(services != null && !services.isEmpty()) {
             boolean ready = false;
             BundleContext ctx = getFramework().getBundleContext();
             ServiceAvailabilityChecker checker = new ServiceAvailabilityChecker(services, ctx);
@@ -145,6 +154,29 @@ public abstract class OSGiTestSupport<T extends Framework> {
                 fail("Unable to get all services");
             }
         }
+    }
+    
+    public <T> T getService(Class<T> clazz, String filter, String... pkgs) {
+        BundleContext ctx = getFramework().getBundleContext();
+        T inst = null;
+
+        try {
+            ServiceReference[] refs = ctx.getServiceReferences(clazz.getName(), filter);
+            if(refs != null && refs.length > 0) {
+                Object svc = ctx.getService(refs[0]);
+                
+                if(svc != null) {
+                    ApiBridge apiBridge = ApiBridge.getApiBridge(
+                            Thread.currentThread().getContextClassLoader(), pkgs);
+                    
+                    inst = (T) apiBridge.bridge(svc);
+                }
+            }
+        } catch (Exception ex) {
+            fail("Unable to get service", ex);
+        }
+        
+        return inst;
     }
     
     public abstract void configureFramework();
@@ -216,8 +248,9 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
 
         for(final Bundle bundle : bundles) {
-            if(bundle.getState() != Bundle.INSTALLED) {
-                fail("Bundle " + toString(bundle) + " is not installed.");
+            if(bundle.getState() < Bundle.INSTALLED) {
+                fail("Bundle " + toString(bundle) + " is not installed: state="
+                        + toString(bundle.getState()));
             }
 
             log.log(Level.INFO, "... installed bundle {0} ({1})",
