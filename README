@@ -6,12 +6,29 @@ bugs in basic OSGi frameworks like Apache Felix and/or in more
 sophisticated environments like GlassFish 3.1+ which supports many of the
 OSGi/JavaEE parts as of OSGi Service Platform Enterprise Specification.
 
-Features (as of 2011-02-25):
+Features:
 * Uses TestNG
 * Generic OSGi test support (abstract implementation)
 * Apache Felix OSGi test support (incl. custom configurations)
 * GlassFish 3.1 OSGi test support (based on Felix)
 * GlassFish 3.1 OSGi + Derby test support
+
+Test Bundles:
+* simple Bundle with Activator
+* simple Fragment + Host bundle
+* simple Stateless Session Bean Bundle (OSGi/EJB)
+* "common" component:
+  * API
+  * Model
+  * Persistence (statically weaved using EclipseLink 2.2)
+  * Utils
+* "movie" component
+  * Component Service API
+  * Client Model
+  * Persistence API
+  * JPA 2.0 implementation using EJB
+  * EJB Service implementation
+  * POJO/SCR Service implementation
 
 On my ToDo list currently:
 * Enhance customizability of the GlassFish instance
