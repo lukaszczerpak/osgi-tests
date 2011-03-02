@@ -17,6 +17,7 @@
 package org.ancoron.osgi.test.glassfish;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +29,8 @@ import org.ancoron.movie.persistence.MoviePersistenceService;
 import org.ancoron.osgi.test.ejb.slsb.SLSBInterface;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.Test;
 
@@ -96,7 +99,32 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
         Collections.sort(b, new BundleComparator());
 
         for(Bundle tmp : b) {
-            logLines.add(String.format("[%4d][%11s] %s", tmp.getBundleId(), toString(tmp.getState()), tmp.getSymbolicName()));
+            logLines.add(String.format("%4d|%11s| %s (%s)",
+                    tmp.getBundleId(),
+                    toString(tmp.getState()),
+                    tmp.getSymbolicName(),
+                    tmp.getVersion().toString()));
+            ServiceReference[] refs = tmp.getRegisteredServices();
+            if(refs != null && refs.length > 0) {
+                logLines.add("    Provides:");
+                for(ServiceReference ref : refs) {
+                    String[] clazz = (String[]) ref.getProperty(Constants.OBJECTCLASS);
+                    Long id = (Long) ref.getProperty(Constants.SERVICE_ID);
+                    logLines.add(String.format("    - id=%d, interfaces: %s",
+                            id, Arrays.toString(clazz)));
+                }
+            }
+
+            refs = tmp.getServicesInUse();
+            if(refs != null && refs.length > 0) {
+                logLines.add("    Consumes:");
+                for(ServiceReference ref : refs) {
+                    String[] clazz = (String[]) ref.getProperty(Constants.OBJECTCLASS);
+                    Long id = (Long) ref.getProperty(Constants.SERVICE_ID);
+                    logLines.add(String.format("    - id=%d, bundle=%d, interfaces: %s",
+                            id, ref.getBundle().getBundleId(), Arrays.toString(clazz)));
+                }
+            }
         }
 
         super.stopFramework();
