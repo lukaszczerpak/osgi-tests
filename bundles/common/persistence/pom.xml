@@ -10,13 +10,49 @@
     <artifactId>common-persistence</artifactId>
     <packaging>bundle</packaging>
     <name>Common Persistence API OSGi Bundle</name>
+
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>META-INF/persistence.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <target>
+                                <java classname="org.eclipse.persistence.tools.weaving.jpa.StaticWeave"
+                                      classpathref="maven.runtime.classpath" fork="true">
+                                    <arg line="-loglevel FINEST -persistenceinfo src/main/resources target/classes target/classes"/>
+                                </java>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
                 <configuration>
+                    <excludeDependencies>true</excludeDependencies>
                     <instructions>
+                        <GlassFish-StaticallyWeaved>true</GlassFish-StaticallyWeaved>
+                        <Private-Package>
+                            !${project.groupId}.persistence.nopackage
+                        </Private-Package>
                         <Export-Package>
                             ${project.groupId}.persistence;version=${project.version},
                         </Export-Package>
@@ -27,8 +63,14 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>eclipselink</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>javax.persistence</artifactId>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -38,7 +80,9 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>common-model</artifactId>
             <version>${project.version}</version>
+            <!--
             <scope>provided</scope>
+            -->
         </dependency>
     </dependencies>
 </project>
