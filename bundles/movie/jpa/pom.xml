@@ -19,6 +19,9 @@
                 <configuration>
                     <instructions>
                         <Export-EJB>ALL</Export-EJB>
+                        <Private-Package>
+                            ${project.groupId}.jpa.impl
+                        </Private-Package>
                         <Export-Package>
                             ${project.groupId}.jpa;version=${project.version},
                             ${project.groupId}.jpa.entity;version=${project.version}
