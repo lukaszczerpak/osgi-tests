@@ -20,9 +20,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import org.ancoron.movie.MovieService;
+import org.ancoron.movie.MovieServiceException;
 import org.ancoron.movie.jpa.MovieJPAService;
 import org.ancoron.movie.persistence.MoviePersistenceException;
 import org.ancoron.movie.persistence.MoviePersistenceService;
@@ -49,24 +52,26 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
     public void testSLSBService() {
         logTest();
 
-        services.put(SLSBInterface.class.getName(), null);
+        Map<String, String> svcs = new HashMap<String, String>();
+        svcs.put(SLSBInterface.class.getName(), null);
         
-        waitForServices();
+        waitForServices(svcs);
         
-        services.clear();
+        svcs.clear();
     }
     
     @Test(timeOut=10000, dependsOnGroups={"glassfish-osgi-startup"})
     public void testMovieServicesAvailability() {
         logTest();
         
-        services.put(MoviePersistenceService.class.getName(), null);
-        services.put(MovieJPAService.class.getName(), null);
-        services.put(MovieService.class.getName(), null);
-        
-        waitForServices();
-        
-        services.clear();
+        Map<String, String> svcs = new HashMap<String, String>();
+        svcs.put(MoviePersistenceService.class.getName(), null);
+        svcs.put(MovieJPAService.class.getName(), null);
+        svcs.put(MovieService.class.getName(), null);
+
+        waitForServices(svcs);
+
+        svcs.clear();
     }
     
     @Test(timeOut=10000, dependsOnMethods={"testMovieServicesAvailability"})
@@ -85,6 +90,25 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
             movieService.getAllVideos();
         } catch (MoviePersistenceException ex) {
             fail("Unexpected error during persistence service call", ex);
+        }
+    }
+    
+    @Test(timeOut=10000, dependsOnMethods={"testMovieServicesAvailability"})
+    public void testMovieService() {
+        logTest();
+        
+        MovieService movieService = getService(
+                MovieService.class, null,
+                "org.ancoron.movie",
+                "org.ancoron.movie.model",
+                "org.ancoron.movie.persistence",
+                "org.ancoron.movie.persistence.model",
+                "org.ancoron.movie.jpa",
+                "org.ancoron.movie.jpa.entity");
+        try {
+            movieService.getAllVideos();
+        } catch (MovieServiceException ex) {
+            fail("Unexpected error during service call", ex);
         }
     }
     
