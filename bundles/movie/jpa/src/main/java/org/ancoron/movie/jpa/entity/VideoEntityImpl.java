@@ -51,7 +51,7 @@ import org.ancoron.movie.persistence.model.VideoEntity;
 @NamedQueries({
     @NamedQuery(
         name=VideoEntityImpl.FIND_ALL,
-        query="SELECT v FROM VideoEntityImpl v ORDER BY c_id")
+        query="SELECT v FROM VideoEntityImpl v ORDER BY v.id")
 })
 public abstract class VideoEntityImpl extends AbstractIdentifiable implements VideoEntity, Serializable {
     
