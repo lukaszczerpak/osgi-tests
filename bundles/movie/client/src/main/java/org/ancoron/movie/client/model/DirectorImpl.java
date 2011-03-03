@@ -17,7 +17,9 @@
 package org.ancoron.movie.client.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import org.ancoron.common.model.Gender;
 import org.ancoron.movie.model.Director;
 import org.ancoron.movie.model.Video;
 
@@ -27,7 +29,15 @@ import org.ancoron.movie.model.Video;
  */
 public class DirectorImpl extends PersonImpl implements Director, Serializable {
 
-    private List<Video> videos;
+    public DirectorImpl() {}
+    
+    public DirectorImpl(String forename, String surname, Gender gender) {
+        setForename(forename);
+        setSurname(surname);
+        setGender(gender);
+    }
+
+    private List<Video> videos = new ArrayList<Video>();
 
     /**
      * Get the value of videos

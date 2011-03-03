@@ -17,6 +17,7 @@
 package org.ancoron.movie.client.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -83,7 +84,7 @@ public abstract class VideoImpl extends AbstractIdentifiable implements Video, S
         return getTitleMap().get(locale);
     }
     
-    private Map<Locale, String> titleMap = new HashMap<Locale, String>(3);
+    private Map<Locale, String> titleMap = new HashMap<Locale, String>();
 
     /**
      * Get the value of titleMap
@@ -104,7 +105,7 @@ public abstract class VideoImpl extends AbstractIdentifiable implements Video, S
         this.titleMap = titleMap;
     }
 
-    private List<Figure> characters;
+    private List<Figure> characters = new ArrayList<Figure>();
 
     /**
      * Get the value of characters
@@ -125,7 +126,7 @@ public abstract class VideoImpl extends AbstractIdentifiable implements Video, S
         this.characters = characters;
     }
 
-    private List<Director> directors;
+    private List<Director> directors = new ArrayList<Director>();
 
     /**
      * Get the value of directors

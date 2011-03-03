@@ -17,6 +17,7 @@
 package org.ancoron.movie.client.model;
 
 import java.io.Serializable;
+import java.util.Locale;
 import org.ancoron.movie.model.Movie;
 
 /**
@@ -24,6 +25,13 @@ import org.ancoron.movie.model.Movie;
  * @author ancoron
  */
 public class MovieImpl extends VideoImpl implements Movie, Serializable {
+    
+    public MovieImpl() {}
+    
+    public MovieImpl(String defaultTitle, Locale defaultLocale) {
+        setDefaultTitleLanguage(defaultLocale);
+        getTitleMap().put(defaultLocale, defaultTitle);
+    }
 
     private String iMDBId;
 

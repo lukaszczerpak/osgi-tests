@@ -27,6 +27,12 @@ import org.ancoron.movie.model.Video;
  * @author ancoron
  */
 public class CharacterImpl extends AbstractIdentifiable implements Figure, Serializable {
+    
+    public CharacterImpl() {}
+    
+    public CharacterImpl(String name) {
+        this.name = name;
+    }
 
     @Column(name="c_name")
     private String name;

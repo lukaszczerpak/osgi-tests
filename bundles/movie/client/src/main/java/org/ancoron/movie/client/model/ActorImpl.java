@@ -17,7 +17,9 @@
 package org.ancoron.movie.client.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import org.ancoron.common.model.Gender;
 import org.ancoron.movie.model.Actor;
 import org.ancoron.movie.model.Figure;
 
@@ -26,8 +28,16 @@ import org.ancoron.movie.model.Figure;
  * @author ancoron
  */
 public class ActorImpl extends PersonImpl implements Actor, Serializable {
+    
+    public ActorImpl() {}
+    
+    public ActorImpl(String forename, String surname, Gender gender) {
+        setForename(forename);
+        setSurname(surname);
+        setGender(gender);
+    }
 
-    private List<Figure> characters;
+    private List<Figure> characters = new ArrayList<Figure>();
 
     /**
      * Get the value of characters
