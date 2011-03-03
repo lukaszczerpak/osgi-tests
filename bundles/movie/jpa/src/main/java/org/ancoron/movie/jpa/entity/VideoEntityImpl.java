@@ -17,6 +17,8 @@
 package org.ancoron.movie.jpa.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.CollectionTable;
@@ -83,7 +85,7 @@ public abstract class VideoEntityImpl extends AbstractIdentifiable implements Vi
     @MapKeyColumn(name="c_lang")
     @Column(name="c_title")
     @CollectionTable(name="mov_title_map", joinColumns=@JoinColumn(name="fk_video"))
-    private Map<String, String> titleMap;
+    private Map<String, String> titleMap = new HashMap<String, String>();
 
     /**
      * Get the value of titleMap
@@ -106,7 +108,7 @@ public abstract class VideoEntityImpl extends AbstractIdentifiable implements Vi
 
     @OneToMany(mappedBy="video", targetEntity=CharacterEntityImpl.class)
     @OrderColumn(name="c_index")
-    private List<CharacterEntity> characters;
+    private List<CharacterEntity> characters = new ArrayList<CharacterEntity>();
 
     /**
      * Get the value of characters
@@ -129,7 +131,7 @@ public abstract class VideoEntityImpl extends AbstractIdentifiable implements Vi
 
     @ManyToMany(mappedBy="videos", targetEntity=DirectorEntityImpl.class)
     @OrderColumn(name="c_index")
-    private List<DirectorEntity> directors;
+    private List<DirectorEntity> directors = new ArrayList<DirectorEntity>();
 
     /**
      * Get the value of directors

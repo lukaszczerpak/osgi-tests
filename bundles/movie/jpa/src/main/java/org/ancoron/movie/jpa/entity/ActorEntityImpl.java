@@ -17,6 +17,7 @@
 package org.ancoron.movie.jpa.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -35,7 +36,7 @@ import org.ancoron.movie.persistence.model.CharacterEntity;
 public class ActorEntityImpl extends PersonEntityImpl implements ActorEntity, Serializable {
 
     @OneToMany(targetEntity=CharacterEntityImpl.class, mappedBy="actor")
-    private List<CharacterEntity> characters;
+    private List<CharacterEntity> characters = new ArrayList<CharacterEntity>();
 
     /**
      * Get the value of characters

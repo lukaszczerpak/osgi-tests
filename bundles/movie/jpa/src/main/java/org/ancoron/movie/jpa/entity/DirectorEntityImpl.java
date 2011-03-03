@@ -17,6 +17,7 @@
 package org.ancoron.movie.jpa.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -40,7 +41,7 @@ public class DirectorEntityImpl extends PersonEntityImpl implements DirectorEnti
     @JoinTable(name="mov_video_directors",
         joinColumns={@JoinColumn(name="fk_director", referencedColumnName="c_id")},
         inverseJoinColumns={@JoinColumn(name="fk_video", referencedColumnName="c_id")})
-    private List<VideoEntity> videos;
+    private List<VideoEntity> videos = new ArrayList<VideoEntity>();
 
     /**
      * Get the value of videos
