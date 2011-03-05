@@ -14,6 +14,7 @@
     <name>Test Execution projects</name>
 
     <modules>
+        <module>movie-service-test</module>
         <module>felix</module>
         <module>glassfish</module>
         <module>glassfish-derby</module>
