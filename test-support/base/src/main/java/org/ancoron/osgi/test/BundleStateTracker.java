@@ -20,6 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 
@@ -34,14 +35,23 @@ public class BundleStateTracker implements Callable<Boolean>, BundleListener {
     private final int state;
     private final long bundleId;
     private boolean ready = false;
+    private final BundleContext context;
     
-    public BundleStateTracker(long bundleId, int state) {
+    public BundleStateTracker(long bundleId, int state, BundleContext context) {
         this.bundleId = bundleId;
         this.state = state;
+        this.context = context;
     }
     
     @Override
     public Boolean call() throws Exception {
+        ready = context.getBundle(bundleId).getState() == state;
+        
+        if(ready) {
+            log.log(Level.INFO, "Bundle [{0}] already reached target state {1}",
+                    new Object[]{bundleId, toString(state)});
+        }
+
         while(!ready) {
             Thread.sleep(100);
         }
