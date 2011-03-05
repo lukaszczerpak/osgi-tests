@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -39,10 +40,10 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
+import org.osgi.util.tracker.ServiceTracker;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -70,6 +71,16 @@ public abstract class OSGiTestSupport<T extends Framework> {
     
     protected void setFramework(T framework) {
         this.framework = framework;
+    }
+
+    protected void testBundleInstalled(final Bundle bundle) {
+        if(bundle.getState() < Bundle.INSTALLED) {
+            fail("Bundle " + toString(bundle) + " is not installed: state="
+                    + toString(bundle.getState()));
+        }
+
+        log.log(Level.INFO, "... installed bundle {0} ({1})",
+                new Object[]{toString(bundle), bundle.getLocation()});
     }
     
     protected String toString(Bundle bundle) {
@@ -130,6 +141,32 @@ public abstract class OSGiTestSupport<T extends Framework> {
             fail("Updating bundle " + toString(bundle) + " failed", ex);
         }
     }
+    
+    /**
+     * A helper method to easily deploy bundles inside tests based on their
+     * maven artifact string.
+     * 
+     * <p>
+     * e.g.:
+     * <pre>
+     * Bundle test = installAndStart("org.ancoron.osgi.test:movie-service-test");
+     * </pre>
+     * </p>
+     * 
+     * @param artifact 
+     * 
+     * @return 
+     */
+    protected Bundle installAndStart(String artifact) {
+        File f = MavenHelper.getArtifact(artifact);
+        
+        BundleContext ctx = getFramework().getBundleContext();
+        Bundle b = installBundle(f, ctx);
+        
+        startBundle(b);
+        
+        return b;
+    }
 
     public void waitForServices() {
         if(services != null && !services.isEmpty()) {
@@ -154,6 +191,35 @@ public abstract class OSGiTestSupport<T extends Framework> {
                 fail("Unable to get all services");
             }
         }
+    }
+    
+    public <T> T waitForService(final Class<T> clazz) {
+        final BundleContext ctx = getFramework().getBundleContext();
+        T inst = null;
+
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        try {
+            inst = exec.submit(new Callable<T>() {
+
+                @Override
+                public T call() throws Exception {
+                    ServiceTracker st = new ServiceTracker(ctx, clazz.getName(), null);
+                    Object svc = st.waitForService(10000);
+                    if(svc != null) {
+                        ApiBridge apiBridge = ApiBridge.getApiBridge(
+                                Thread.currentThread().getContextClassLoader(), clazz.getPackage().getName());
+
+                        return (T) apiBridge.bridge(svc);
+                    }
+                    
+                    return null;
+                }
+            }).get();
+        } catch (Exception ex) {
+            fail("Unable to get all services", ex);
+        }
+        
+        return inst;
     }
     
     public <T> T getService(Class<T> clazz, String filter, String... pkgs) {
@@ -183,6 +249,9 @@ public abstract class OSGiTestSupport<T extends Framework> {
     
     public void startFramework() {
         try {
+            log.info("Initializing framework ...");
+            getFramework().init();
+
             log.info("Starting framework ...");
             getFramework().start();
             
@@ -248,13 +317,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
 
         for(final Bundle bundle : bundles) {
-            if(bundle.getState() < Bundle.INSTALLED) {
-                fail("Bundle " + toString(bundle) + " is not installed: state="
-                        + toString(bundle.getState()));
-            }
-
-            log.log(Level.INFO, "... installed bundle {0} ({1})",
-                    new Object[]{toString(bundle), bundle.getLocation()});
+            testBundleInstalled(bundle);
         }
     }
 
@@ -279,8 +342,18 @@ public abstract class OSGiTestSupport<T extends Framework> {
             log.log(Level.INFO, "Starting bundle {0} ...", toString(bundle));
 
             try {
-                ctx.addBundleListener(new BundleStateTracker(
-                        bundle.getBundleId(), Bundle.ACTIVE));
+                final BundleStateTracker tracker;
+
+                if(isFragment(bundle)) {
+                    tracker = new BundleStateTracker(
+                            bundle.getBundleId(), Bundle.RESOLVED, ctx);
+                } else {
+                    tracker = new BundleStateTracker(
+                            bundle.getBundleId(), Bundle.ACTIVE, ctx);
+                }
+
+                trackers.add(tracker);
+                ctx.addBundleListener(tracker);
                 bundle.start();
             } catch(Exception x) {
                 log.log(Level.WARNING, "Unable to start bundle in the first place: "
