@@ -44,10 +44,10 @@ public class ServiceHelper {
         try {
             ServiceReference[] refs = ctx.getServiceReferences(clazz.getName(), filter);
             if(refs == null || refs.length == 0) {
-                throw new ServiceUnavailableException("No service available for Class '"
+                throw new ServiceUnavailableException("No service available for class '"
                         + clazz.getName() + "' and filter '" + filter + "'");
             } else if(refs.length > 1) {
-                log.log(Level.WARNING, "Found more than one matching services for Class "
+                log.log(Level.WARNING, "Found more than one matching services for class "
                         + "''{0}'' and filter ''{1}''",
                         new Object[]{clazz.getName(), filter});
             }
@@ -55,6 +55,11 @@ public class ServiceHelper {
             inst = (T) ctx.getService(refs[0]);
         } catch(InvalidSyntaxException x) {
             throw new ServiceAccessException(x);
+        }
+        
+        if(inst == null) {
+            throw new ServiceUnavailableException(
+                    "Unable to get an instance for service '" + clazz.getName() + "'");
         }
         
         return inst;
