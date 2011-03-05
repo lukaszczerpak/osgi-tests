@@ -96,20 +96,50 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
     @Test(timeOut=10000, dependsOnMethods={"testMovieServicesAvailability"})
     public void testMovieService() {
         logTest();
-        
+
         MovieService movieService = getService(
                 MovieService.class, null,
+                "org.ancoron.common.model",
                 "org.ancoron.movie",
                 "org.ancoron.movie.model",
                 "org.ancoron.movie.persistence",
                 "org.ancoron.movie.persistence.model",
                 "org.ancoron.movie.jpa",
                 "org.ancoron.movie.jpa.entity");
+        
         try {
             movieService.getAllVideos();
+
         } catch (MovieServiceException ex) {
-            fail("Unexpected error during service call", ex);
+            fail("Service error during service call", ex);
         }
+    }
+    
+    @Test(timeOut=10000, dependsOnMethods={"testMovieService"})
+    public void testUpdatePersistenceAPI() {
+        logTest();
+        
+        try {
+            Bundle b = null;
+            
+            for(Bundle tmp : bundles) {
+                if("org.ancoron.movie.persistence".equals(tmp.getSymbolicName())) {
+                    b = tmp;
+                    break;
+                }
+            }
+            
+            updateBundle(b, null);
+
+            Thread.sleep(1000);
+        } catch (Exception ex) {
+            fail("Unexpected error during bundle update", ex);
+        }
+        
+        
+        testMovieServicesAvailability();
+        
+        testMovieService();
     }
     
     @Override
@@ -177,6 +207,6 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
             sb.append("\n").append(tmp);
         }
         
-        log.info(sb.toString());
+        log.info(sb.toString() + "\n");
     }
 }
