@@ -159,24 +159,22 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
                     tmp.getSymbolicName(),
                     tmp.getVersion().toString()));
             ServiceReference[] refs = tmp.getRegisteredServices();
-            if(refs != null && refs.length > 0) {
-                logLines.add("    Provides:");
+            if(refs != null) {
                 for(ServiceReference ref : refs) {
                     String[] clazz = (String[]) ref.getProperty(Constants.OBJECTCLASS);
                     Long id = (Long) ref.getProperty(Constants.SERVICE_ID);
-                    logLines.add(String.format("    - id=%d, interfaces: %s",
-                            id, Arrays.toString(clazz)));
+                    logLines.add(String.format("    |%11s| id=%d, interfaces: %s",
+                            "providing", id, Arrays.toString(clazz)));
                 }
             }
 
             refs = tmp.getServicesInUse();
-            if(refs != null && refs.length > 0) {
-                logLines.add("    Consumes:");
+            if(refs != null) {
                 for(ServiceReference ref : refs) {
                     String[] clazz = (String[]) ref.getProperty(Constants.OBJECTCLASS);
                     Long id = (Long) ref.getProperty(Constants.SERVICE_ID);
-                    logLines.add(String.format("    - id=%d, bundle=%d, interfaces: %s",
-                            id, ref.getBundle().getBundleId(), Arrays.toString(clazz)));
+                    logLines.add(String.format("    |%11s| <-- id=%d, bundle=%d, interfaces: %s",
+                            "consuming", id, ref.getBundle().getBundleId(), Arrays.toString(clazz)));
                 }
             }
         }
