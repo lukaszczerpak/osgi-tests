@@ -24,6 +24,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.dynamicjava</groupId>
             <artifactId>api-bridge</artifactId>
             <version>1.0.1</version>
