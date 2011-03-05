@@ -80,6 +80,16 @@ public class POMReader
     {
         return properties;
     }
+    
+    public String getVersion() {
+        String version = project[2];
+        
+        if(version == null) {
+            version = parent[2];
+        }
+        
+        return version;
+    }
 
     public List<File> getProvided()
     {
