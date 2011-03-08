@@ -60,14 +60,14 @@ public class MovieServiceTestImpl implements MovieServiceTest {
         mc.setActor(ma);
         ma.getCharacters().add(mc);
         mc.setVideo(m);
-        ma.getCharacters().add(mc);
+        m.getCharacters().add(mc);
 
         ActorImpl va = new ActorImpl("Vincent", "Cassel", Gender.MALE);
         CharacterImpl vc = new CharacterImpl("Thomas Leroy");
         vc.setActor(va);
         va.getCharacters().add(vc);
         vc.setVideo(m);
-        va.getCharacters().add(vc);
+        m.getCharacters().add(vc);
 
         Long id = svc.saveVideo(m);
 
@@ -76,8 +76,12 @@ public class MovieServiceTestImpl implements MovieServiceTest {
         }
 
         Video v = svc.getVideo(id);
-
-        log.log(Level.INFO, "Saved movie {0} has been saved with ID {1}",
+        
+        log.log(Level.INFO, "Movie {0} has been saved with ID {1}",
                 new Object[]{v.getTitle(), id.toString()});
+        
+        if(v.getCharacters().size() != 3) {
+            throw new IllegalStateException("Not all characters have been assigned");
+        }
     }
 }
