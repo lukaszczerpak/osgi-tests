@@ -29,6 +29,7 @@ import org.ancoron.movie.MovieServiceException;
 import org.ancoron.movie.jpa.MovieJPAService;
 import org.ancoron.movie.persistence.MoviePersistenceException;
 import org.ancoron.movie.persistence.MoviePersistenceService;
+import org.ancoron.movie.test.MovieServiceTest;
 import org.ancoron.osgi.test.ejb.slsb.SLSBInterface;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -52,12 +53,19 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
     public void testSLSBService() {
         logTest();
 
-        Map<String, String> svcs = new HashMap<String, String>();
-        svcs.put(SLSBInterface.class.getName(), null);
-        
-        waitForServices(svcs);
-        
-        svcs.clear();
+        SLSBInterface svc = waitForService(SLSBInterface.class, SERVICE_LOOKUP_REFERENCE);
+        if(svc == null) {
+            fail("Unable to lookup service via ServiceReference: " + SLSBInterface.class.getName());
+        }
+
+        svc = waitForService(SLSBInterface.class, SERVICE_LOOKUP_TRACKER);
+        if(svc == null) {
+            fail("Unable to lookup service via ServiceTracker: " + SLSBInterface.class.getName());
+        }
+
+        if(svc.getName() == null) {
+            fail("Service " + SLSBInterface.class.getName() + " returned null on method getName()");
+        }
     }
     
     @Test(timeOut=10000, dependsOnGroups={"glassfish-osgi-startup"})
@@ -109,9 +117,17 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
         
         try {
             movieService.getAllVideos();
-
         } catch (MovieServiceException ex) {
             fail("Service error during service call", ex);
+        }
+        
+        installAndStart("org.ancoron.osgi.test:movie-service-test");
+
+        MovieServiceTest svc = waitForService(MovieServiceTest.class);
+        try {
+            svc.test();
+        } catch (Exception ex) {
+            fail("Error during service test", ex);
         }
     }
     
