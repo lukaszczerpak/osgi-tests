@@ -194,6 +194,13 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
     
     public <T> T waitForService(final Class<T> clazz) {
+        return waitForService(clazz, SERVICE_LOOKUP_REFERENCE);
+    }
+    
+    protected static final int SERVICE_LOOKUP_REFERENCE = 0;
+    protected static final int SERVICE_LOOKUP_TRACKER = 1;
+    
+    public <T> T waitForService(final Class<T> clazz, final int type) {
         final BundleContext ctx = getFramework().getBundleContext();
         T inst = null;
 
@@ -203,13 +210,25 @@ public abstract class OSGiTestSupport<T extends Framework> {
 
                 @Override
                 public T call() throws Exception {
-                    ServiceTracker st = new ServiceTracker(ctx, clazz.getName(), null);
-                    Object svc = st.waitForService(10000);
-                    if(svc != null) {
-                        ApiBridge apiBridge = ApiBridge.getApiBridge(
-                                Thread.currentThread().getContextClassLoader(), clazz.getPackage().getName());
+                    Object svc = null;
+                    while(svc == null) {
+                        switch(type) {
+                            case SERVICE_LOOKUP_REFERENCE:
+                                svc = getWithServiceReference(ctx, clazz.getName());
+                                break;
+                            case SERVICE_LOOKUP_TRACKER:
+                                svc = getWithServiceTracker(ctx, clazz.getName());
+                                break;
+                            default:
+                                throw new IllegalArgumentException("Unknown service lookup type " + type);
+                        }
+                        if(svc != null) {
+                            ApiBridge apiBridge = ApiBridge.getApiBridge(
+                                    Thread.currentThread().getContextClassLoader(), clazz.getPackage().getName());
 
-                        return (T) apiBridge.bridge(svc);
+                            return (T) apiBridge.bridge(svc);
+                        }
+                        Thread.sleep(500);
                     }
                     
                     return null;
@@ -220,6 +239,23 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
         
         return inst;
+    }
+    
+    private Object getWithServiceTracker(BundleContext ctx, String className) {
+        ServiceTracker st = new ServiceTracker(ctx, className, null);
+        st.open();
+        try {
+            Object svc = st.getService();
+
+            return svc;
+        } finally {
+            st.close();
+        }
+    }
+    
+    private Object getWithServiceReference(BundleContext ctx, String className) {
+        ServiceReference ref = ctx.getServiceReference(className);
+        return ctx.getService(ref);
     }
     
     public <T> T getService(Class<T> clazz, String filter, String... pkgs) {
