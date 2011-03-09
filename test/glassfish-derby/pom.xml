@@ -135,25 +135,28 @@
 
     <build>
         <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.7.1</version>
-                    <configuration>
-                        <systemPropertyVariables>
-                            <maven.repo>${settings.localRepository}</maven.repo>
-                            <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
-                            <glassfish.version>${glassfish.version}</glassfish.version>
-                            <java.endorsed.dirs>${glassfish.install.dir}/glassfish3/glassfish/modules/endorsed:${glassfish.install.dir}/glassfish3/glassfish/lib/endorsed</java.endorsed.dirs>
-                            <jdbc.drivers>org.apache.derby.jdbc.ClientDriver</jdbc.drivers>
-                            <com.sun.enterprise.config.config_environment_factory_class>com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</com.sun.enterprise.config.config_environment_factory_class>
-                            <!--
-                            <javax.management.builder.initial>com.sun.enterprise.v3.admin.AppServerMBeanServerBuilder</javax.management.builder.initial>
-                            -->
-                        </systemPropertyVariables>
-                        <argLine>-server</argLine>
-                    </configuration>
-                </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.7.1</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!--
+                        <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
+                        -->
+                        <maven.repo>${settings.localRepository}</maven.repo>
+                        <glassfish.install.dir>${glassfish.install.dir}</glassfish.install.dir>
+                        <glassfish.version>${glassfish.version}</glassfish.version>
+                        <java.endorsed.dirs>${glassfish.install.dir}/glassfish3/glassfish/modules/endorsed:${glassfish.install.dir}/glassfish3/glassfish/lib/endorsed</java.endorsed.dirs>
+                        <jdbc.drivers>org.apache.derby.jdbc.ClientDriver</jdbc.drivers>
+                        <com.sun.enterprise.config.config_environment_factory_class>com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</com.sun.enterprise.config.config_environment_factory_class>
+                        <!--
+                        <javax.management.builder.initial>com.sun.enterprise.v3.admin.AppServerMBeanServerBuilder</javax.management.builder.initial>
+                        -->
+                    </systemPropertyVariables>
+                    <argLine>-server</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
