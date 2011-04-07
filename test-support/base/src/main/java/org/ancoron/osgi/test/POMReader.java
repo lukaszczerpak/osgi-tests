@@ -49,6 +49,8 @@ public class POMReader
     private static final String ELEMENT_ARTIFACTID = "artifactId";
     private static final String ELEMENT_VERSION = "version";
     private static final String ELEMENT_SCOPE = "scope";
+    private static final String ELEMENT_TYPE = "type";
+    private static final String ELEMENT_PACKAGING = "packaging";
     private static final String ELEMENT_DEPENDENCIES = "dependencies";
     private static final String ELEMENT_DEPENDENCY = "dependency";
     private static final String ELEMENT_DEPENDENCYMGMT = "dependencyManagement";
@@ -61,7 +63,7 @@ public class POMReader
     private Map<String, String> dependencies = new LinkedHashMap<String, String>();
     private Properties properties = new Properties();
     private final Deque<String> stack = new ArrayDeque<String>();
-    private String[] dependency = new String[4];
+    private String[] dependency = new String[5];
     private String[] parent = new String[4];
     private String[] project = new String[4];
     private boolean inProperties = false;
@@ -159,11 +161,11 @@ public class POMReader
     protected void handleElement(final String name) throws XMLStreamException
     {
         if (ELEMENT_PARENT.equals(name)) {
-            dependency = new String[4];
+            dependency = new String[5];
         } else if (ELEMENT_DEPENDENCYMGMT.equals(name)) {
             inDependencyMgmt = true;
         } else if (ELEMENT_DEPENDENCY.equals(name)) {
-            dependency = new String[4];
+            dependency = new String[5];
         } else if (ELEMENT_PROPERTIES.equals(name) && stack.size() == 1) {
             inProperties = true;
         } else if (inProperties) {
@@ -196,7 +198,7 @@ public class POMReader
             }
 
             project = parent;
-            dependency = new String[4];
+            dependency = new String[5];
         } else if (ELEMENT_PROPERTIES.equals(name)) {
             inProperties = false;
         } else if (inProperties) {
@@ -234,12 +236,14 @@ public class POMReader
                 }
 
                 dependency[3] = dependency[3] == null ? "compile" : dependency[3];
+                dependency[4] = dependency[4] == null ? "jar" : dependency[4];
 
-                log.log(Level.INFO, "Parsed dependency {0}:{1}:{2}:{3} ...",
-                        new Object[]{dependency[0], dependency[1], dependency[2], dependency[3]});
+                log.log(Level.INFO, "Parsed dependency {0}:{1}:{2}:{3}:{4} ...",
+                        new Object[]{dependency[0], dependency[1], dependency[2], dependency[4], dependency[3]});
                 String path = dependency[0].replaceAll("\\.", "/") + "/"
                         + dependency[1] + "/" + dependency[2] + "/"
-                        + dependency[1] + "-" + dependency[2] + ".jar";
+                        + dependency[1] + "-" + dependency[2] + "."
+                        + dependency[4];
 
 
                 dependencies.put(path, dependency[3]);
@@ -265,15 +269,16 @@ public class POMReader
                     // resolve properties...
                     dependency[2] = properties.getProperty(dependency[2].substring(2, dependency[2].length() - 1));
                 }
-
+                
                 dependency[3] = dependency[3] == null ? "compile" : dependency[3];
+                dependency[4] = dependency[4] == null ? "jar" : dependency[4];
 
-                log.log(Level.INFO, "Parsed managed dependency {0}:{1}:{2}:{3} ...",
-                        new Object[]{dependency[0], dependency[1], dependency[2], dependency[3]});
+                log.log(Level.INFO, "Parsed managed dependency {0}:{1}:{2}:{3}:{4} ...",
+                        new Object[]{dependency[0], dependency[1], dependency[2], dependency[4], dependency[3]});
 
                 managedDeps.add(dependency);
             }
-            dependency = new String[4];
+            dependency = new String[5];
         } else if(ELEMENT_DEPENDENCYMGMT.equals(name)) {
             inDependencyMgmt = false;
         }
@@ -292,6 +297,8 @@ public class POMReader
                 dependency[2] = xml.getText();
             } else if (stack.peek().equals(ELEMENT_SCOPE)) {
                 dependency[3] = xml.getText();
+            } else if (stack.peek().equals(ELEMENT_TYPE)) {
+                dependency[4] = xml.getText();
             }
         }
     }
