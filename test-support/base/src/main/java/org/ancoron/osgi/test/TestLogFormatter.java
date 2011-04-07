@@ -60,6 +60,9 @@ public class TestLogFormatter extends Formatter {
             case LVL_SEVERE:
                 sb.append("[ ");
                 break;
+            case LVL_WARNING:
+                sb.append("[");
+                break;
             default:
                 break;
         }
