@@ -110,7 +110,7 @@
       <jms-service type="EMBEDDED" default-jms-host="default_JMS_host">
         <jms-host name="default_JMS_host" host="localhost" port="7676" admin-user-name="admin" admin-password="admin" lazy-init="true"/>
       </jms-service>
-      <security-service>
+      <security-service audit-enabled="true" activate-default-principal-to-role-mapping="true">
         <auth-realm classname="com.sun.enterprise.security.auth.realm.file.FileRealm" name="admin-realm">
           <property value="${com.sun.aas.instanceRoot}/config/admin-keyfile" name="file" />
           <property value="fileRealm" name="jaas-context" />
