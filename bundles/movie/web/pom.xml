@@ -1,0 +1,121 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.ancoron.movie</groupId>
+        <artifactId>movie</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>movie-web</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <name>Movie Web App</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ocpsoft</groupId>
+            <artifactId>prettyfaces-jsf2</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
+        <!-- this must be last to prevent "absent code" errors -->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <supportedProjectTypes>
+                        <supportedProjectType>war</supportedProjectType>
+                    </supportedProjectTypes>
+                    <instructions>
+                        <Web-ContextPath>/movie</Web-ContextPath>
+                        <Bundle-ClassPath>WEB-INF/classes</Bundle-ClassPath>
+                        <Embed-Directory>WEB-INF/lib</Embed-Directory>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Import-Package>
+                            javax.annotation;version="1.1",
+                            javax.annotation.security;version="1.1",
+                            javax.ejb;version="3.1",
+                            javax.el;version="2.1.2",
+                            javax.enterprise.context,
+                            javax.enterprise.context.spi,
+                            javax.enterprise.event,
+                            javax.enterprise.inject,
+                            javax.enterprise.inject.spi,
+                            javax.enterprise.util,
+                            javax.faces;version="2.0",
+                            javax.faces.application;version="2.0",
+                            javax.faces.bean;version="2.0",
+                            javax.faces.component;version="2.0",
+                            javax.faces.component.behavior;version="2.0",
+                            javax.faces.component.html;version="2.0",
+                            javax.faces.component.visit;version="2.0",
+                            javax.faces.context;version="2.0",
+                            javax.faces.convert;version="2.0",
+                            javax.faces.el;version="2.0",
+                            javax.faces.event;version="2.0",
+                            javax.faces.lifecycle;version="2.0",
+                            javax.faces.validator;version="2.0",
+                            javax.faces.render;version="2.0",
+                            javax.faces.view;version="2.0",
+                            javax.faces.view.facelets;version="2.0",
+                            javax.faces.model,
+                            javax.inject,
+                            javax.interceptor,
+                            javax.imageio,
+                            javax.naming,
+                            javax.security.auth,
+                            javax.security.auth.login,
+                            javax.security.jacc,
+                            javax.servlet,
+                            javax.servlet.annotation,
+                            javax.servlet.http,
+                            javax.validation,
+                            javax.validation.constraints,
+                            javax.xml.parsers,
+                            javax.xml.stream,
+                            javax.xml.stream.events,
+                            javax.xml.transform,
+                            org.w3c.dom,
+                            org.w3c.dom.css,
+                            org.xml.sax,
+                            org.xml.sax.helpers
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bundle-manifest</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
