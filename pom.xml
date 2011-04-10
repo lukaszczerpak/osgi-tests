@@ -11,9 +11,14 @@
     <groupId>org.ancoron.osgi.test</groupId>
     <artifactId>osgi-tests</artifactId>
     <version>1.0-SNAPSHOT</version>
-
-    <name>OSGi Test Bundles</name>
     <packaging>pom</packaging>
+
+    <name>OSGi Testing</name>
+    <description>
+        This is a project with the aim to provide a lot of code for common tasks
+        involved when testing OSGi applications.
+    </description>
+    <url>https://github.com/ancoron/osgi-tests/wiki/OSGi-Testing</url>
     
     <licenses>
         <license>
@@ -24,9 +29,15 @@
     </licenses>
     
     <scm>
-        <connection>git://github.com/ancoron/osgi-tests.git</connection>
-        <developerConnection>github.com:ancoron/osgi-tests.git</developerConnection>
+        <connection>scm:git:git@github.com:ancoron/osgi-tests.git</connection>
+        <developerConnection>scm:git:git@github.com:ancoron/osgi-tests.git</developerConnection>
+        <url>git@github.com:ancoron/osgi-tests.git</url>
     </scm>
+    
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/ancoron/osgi-tests/issues</url>
+    </issueManagement>
     
     <developers>
         <developer>
