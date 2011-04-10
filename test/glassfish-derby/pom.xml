@@ -119,6 +119,14 @@
         -->
 
         <dependency>
+            <groupId>org.ancoron.movie</groupId>
+            <artifactId>movie-web</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.ancoron.osgi.test</groupId>
             <artifactId>movie-service-test</artifactId>
             <version>${project.version}</version>
@@ -131,6 +139,12 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.1.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -140,6 +154,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.7.1</version>
                 <configuration>
+                    <forkMode>once</forkMode>
                     <systemPropertyVariables>
                         <!--
                         <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
@@ -154,7 +169,7 @@
                         <javax.management.builder.initial>com.sun.enterprise.v3.admin.AppServerMBeanServerBuilder</javax.management.builder.initial>
                         -->
                     </systemPropertyVariables>
-                    <argLine>-server</argLine>
+                    <argLine>-server -XX:MaxPermSize=256m -Xmx1024m</argLine>
                 </configuration>
             </plugin>
         </plugins>
