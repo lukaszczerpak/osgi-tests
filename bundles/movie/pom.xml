@@ -21,5 +21,6 @@
         <module>jpa</module>
         <module>ejb</module>
         <module>pojo</module>
+        <module>web</module>
     </modules>
 </project>
