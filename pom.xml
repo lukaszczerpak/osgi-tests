@@ -39,6 +39,19 @@
         <url>https://github.com/ancoron/osgi-tests/issues</url>
     </issueManagement>
     
+    <distributionManagement>
+        <repository>
+            <id>oss-staging</id>
+            <name>Staging artifacts</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>oss-snapshots</id>
+            <name>Snapshot artifacts</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    
     <developers>
         <developer>
             <id>ancoron</id>
