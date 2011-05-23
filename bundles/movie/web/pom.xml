@@ -4,11 +4,11 @@
     <parent>
         <groupId>org.ancoron.movie</groupId>
         <artifactId>movie</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>movie-web</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>Movie Web App</name>
