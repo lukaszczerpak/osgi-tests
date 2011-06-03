@@ -58,7 +58,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.testng.annotations.AfterSuite;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -67,6 +66,7 @@ import static org.testng.Assert.*;
  *
  * @author ancoron
  */
+@Test(suiteName = "standard-tests")
 public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
 
     private static final Logger log = Logger.getLogger(GlassfishDerbyTest.class.getName());
@@ -76,12 +76,12 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
     public void testSLSBService() {
         logTest();
 
-        SLSBInterface svc = waitForService(SLSBInterface.class, SERVICE_LOOKUP_REFERENCE);
+        SLSBInterface svc = waitForService(SLSBInterface.class, SERVICE_LOOKUP_TRACKER);
         if(svc == null) {
             fail("Unable to lookup service via ServiceReference: " + SLSBInterface.class.getName());
         }
 
-        svc = waitForService(SLSBInterface.class, SERVICE_LOOKUP_TRACKER);
+        svc = waitForService(SLSBInterface.class, SERVICE_LOOKUP_REFERENCE);
         if(svc == null) {
             fail("Unable to lookup service via ServiceTracker: " + SLSBInterface.class.getName());
         }
@@ -302,13 +302,21 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
             http.getConnectionManager().shutdown();
         }
     }
-    
+
     @Override
     public void stopFramework() {
-        BundleContext ctx = getFramework().getBundleContext();
-        List<Bundle> b = new ArrayList<Bundle>();
-        for(final Bundle bundle : ctx.getBundles()) {
-            b.add(bundle);
+        if(getFramework() == null) {
+            // no chance to do anything...
+            return;
+        }
+
+        final BundleContext ctx = getFramework().getBundleContext();
+        final List<Bundle> b = new ArrayList<Bundle>();
+        
+        if(ctx != null) {
+            for(final Bundle bundle : ctx.getBundles()) {
+                b.add(bundle);
+            }
         }
         
         Collections.sort(b, new BundleComparator());
@@ -341,6 +349,13 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
         }
 
         super.stopFramework();
+
+        StringBuilder sb = new StringBuilder();
+        for(String tmp : logLines) {
+            sb.append("\n").append(tmp);
+        }
+        
+        log.log(Level.INFO, "{0}\n", sb.toString());
     }
 
     public class BundleComparator implements Comparator<Bundle> {
@@ -356,16 +371,4 @@ public class GlassfishDerbyTest extends GlassfishDerbyTestSupport {
         }
     }
     
-    @AfterSuite(alwaysRun=true)
-    @Override
-    public void shutdown() {
-        super.shutdown();
-        
-        StringBuilder sb = new StringBuilder();
-        for(String tmp : logLines) {
-            sb.append("\n").append(tmp);
-        }
-        
-        log.info(sb.toString() + "\n");
-    }
 }
