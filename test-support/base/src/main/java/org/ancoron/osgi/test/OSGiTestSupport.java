@@ -16,6 +16,7 @@
 
 package org.ancoron.osgi.test;
 
+import org.testng.annotations.AfterSuite;
 import java.io.IOException;
 import java.io.File;
 import java.io.InputStream;
@@ -40,11 +41,11 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.util.tracker.ServiceTracker;
-import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
@@ -194,7 +195,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     }
     
     public <T> T waitForService(final Class<T> clazz) {
-        return waitForService(clazz, SERVICE_LOOKUP_REFERENCE);
+        return waitForService(clazz, SERVICE_LOOKUP_TRACKER);
     }
     
     protected static final int SERVICE_LOOKUP_REFERENCE = 0;
@@ -241,19 +242,23 @@ public abstract class OSGiTestSupport<T extends Framework> {
         return inst;
     }
     
-    private Object getWithServiceTracker(BundleContext ctx, String className) {
+    private Object getWithServiceTracker(BundleContext ctx, String className) throws InterruptedException {
+        Object svc = null;
         ServiceTracker st = new ServiceTracker(ctx, className, null);
         st.open();
         try {
-            Object svc = st.getService();
-
-            return svc;
+            // svc = st.getService();
+            svc = st.waitForService(10000L);
         } finally {
             st.close();
         }
+        return svc;
     }
     
     private Object getWithServiceReference(BundleContext ctx, String className) {
+        if(ctx == null) {
+            return null;
+        }
         ServiceReference ref = ctx.getServiceReference(className);
         return ctx.getService(ref);
     }
@@ -285,10 +290,10 @@ public abstract class OSGiTestSupport<T extends Framework> {
     
     public void startFramework() {
         try {
-            log.info("Initializing framework ...");
+            log.info("Initializing OSGi framework ...");
             getFramework().init();
 
-            log.info("Starting framework ...");
+            log.info("Starting OSGi framework ...");
             getFramework().start();
             
             getFramework().getBundleContext().addServiceListener(new LoggingServiceListener());
@@ -301,7 +306,13 @@ public abstract class OSGiTestSupport<T extends Framework> {
         try {
             log.info("Stopping framework ...");
             getFramework().stop();
-            getFramework().waitForStop(0);
+            FrameworkEvent event = getFramework().waitForStop(0);
+            
+            while(event.getType() != FrameworkEvent.STOPPED) {
+                event = getFramework().waitForStop(0);
+            }
+            
+            framework = null;
         } catch (Exception ex) {
             fail("Unable to stop framework", ex);
         }
@@ -309,6 +320,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
     
     @BeforeSuite(alwaysRun=true, timeOut=30000, groups={"generic-osgi-start"})
     public void init() {
+        log.info("Initializing test class environment...");
         try {
             files.addAll(MavenHelper.getProvidedArtifacts());
         } catch (Exception ex) {
@@ -322,9 +334,14 @@ public abstract class OSGiTestSupport<T extends Framework> {
     
     @AfterSuite(alwaysRun=true, timeOut=30000, groups={"generic-osgi-stop"})
     public void shutdown() {
+        log.info("Stopping OSGi framework...");
         stopFramework();
+
+        log.info("Clearing test class caches...");
         files.clear();
         bundles.clear();
+        trackers.clear();
+        services.clear();
     }
 
     protected void logTest()
