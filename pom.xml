@@ -71,10 +71,13 @@
         <javaee.version>6.0</javaee.version>
         <testng.version>5.14.9</testng.version>
         <derby.version>10.7.1.1</derby.version>
-        <felix.framework.version>3.0.8</felix.framework.version>
+        <felix.framework.version>3.2.2</felix.framework.version>
         
         <!-- some helping libraries -->
         <commons-io.version>2.0.1</commons-io.version>
+        
+        <!-- deactivate build failures when tests fail -->
+        <maven.test.failure.ignore>true</maven.test.failure.ignore>
     </properties>
 
     <modules>
