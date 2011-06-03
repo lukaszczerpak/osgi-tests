@@ -58,7 +58,7 @@ public class GlassfishTestSupport extends FelixTestSupport {
     }
     
     protected void prepare() throws IOException {
-
+        log.info("Preparing GlassFish environment...");
         String version = System.getProperty(GF_VER_PROP);
         if(version == null) {
             fail("Please configure a system property named '" + GF_VER_PROP + "'");
@@ -69,12 +69,16 @@ public class GlassfishTestSupport extends FelixTestSupport {
         boolean install = !gfDir.exists();
         
         if(install) {
+            log.log(Level.INFO, "Installing blank GlassFish into: {0}", dir);
             GlassfishHelper.installGlassfish(dir, version);
+        } else {
+            log.log(Level.INFO, "Reusing GlassFish at: {0}", dir);
         }
         
         System.setProperty("com.sun.aas.installRoot", dir + "/glassfish3/glassfish/");
         System.setProperty("com.sun.aas.installRootURI", "file://" + dir + "/glassfish3/glassfish/");
         
+        log.info("Preparing GlassFish environment...");
         GlassfishHelper.configureGlassfish(gfDir.getCanonicalPath());
     }
     
@@ -115,7 +119,9 @@ public class GlassfishTestSupport extends FelixTestSupport {
         }
 
         String gfService = "org.glassfish.embeddable.GlassFish";
+        // String gfRuntime = "org.glassfish.embeddable.GlassFishRuntime";
         services.put(gfService, null);
+        // services.put(gfRuntime, null);
         waitForServices();
         services.clear();
         
@@ -196,7 +202,9 @@ public class GlassfishTestSupport extends FelixTestSupport {
     public void stopFramework() {
         try {
             glassfish.stop(Bundle.STOP_TRANSIENT);
-        } catch (BundleException ex) {
+            
+            Thread.sleep(5000);
+        } catch (Exception ex) {
             fail("Unable to stop GlassFish", ex);
         }
         

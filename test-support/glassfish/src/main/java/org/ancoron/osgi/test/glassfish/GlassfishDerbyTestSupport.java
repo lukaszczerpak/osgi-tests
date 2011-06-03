@@ -17,6 +17,10 @@
 package org.ancoron.osgi.test.glassfish;
 
 import java.io.PrintWriter;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 import org.apache.derby.drda.NetworkServerControl;
 import org.testng.annotations.Test;
 
@@ -28,6 +32,7 @@ import static org.testng.Assert.*;
  */
 public class GlassfishDerbyTestSupport extends GlassfishTestSupport {
 
+    private static final Logger log = Logger.getLogger("GlassFishDerbyTest");
     private NetworkServerControl derby;
     
     @Override
@@ -39,7 +44,28 @@ public class GlassfishDerbyTestSupport extends GlassfishTestSupport {
             derby.start(new PrintWriter(System.out));
             // derby.setTraceDirectory("target/derby");
             // derby.trace(true);
-            derby.logConnections(true);
+            
+            Future<Boolean> started = Executors.newSingleThreadExecutor().submit(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    long end = System.currentTimeMillis() + 10000;
+                    while(System.currentTimeMillis() > end) {
+                        try {
+                            derby.logConnections(true);
+                            
+                            break;
+                        } catch(Exception x) {
+                            Thread.sleep(200);
+                        }
+                    }
+                    
+                    return Boolean.TRUE;
+                }
+            });
+
+            // wait until finished...
+            started.get();
         } catch(Exception x) {
             fail("Unable to start derby network server", x);
         }
@@ -63,8 +89,35 @@ public class GlassfishDerbyTestSupport extends GlassfishTestSupport {
         if(derby != null) {
             try {
                 derby.shutdown();
+
+                final Future<Boolean> stopped = Executors.newSingleThreadExecutor().submit(new Callable<Boolean>() {
+
+                    @Override
+                    public Boolean call() throws Exception {
+                        long end = System.currentTimeMillis() + 10000;
+                        while(System.currentTimeMillis() > end) {
+                            try {
+                                derby.ping();
+
+                                // derby is still running...
+                                Thread.sleep(500);
+                            } catch(Exception x) {
+                                break;
+                            }
+                        }
+
+                        return Boolean.TRUE;
+                    }
+                });
+
+                // wait until finished...
+                stopped.get();
             } catch (Exception ex) {
-                fail("Unable to stop derby network server", ex);
+                if(ex.getMessage().contains("DRDA_NoIO.S")) {
+                    log.warning("Derby server apparently down already: " + ex.getMessage());
+                } else {
+                    fail("Unable to stop derby network server", ex);
+                }
             }
         }
     }

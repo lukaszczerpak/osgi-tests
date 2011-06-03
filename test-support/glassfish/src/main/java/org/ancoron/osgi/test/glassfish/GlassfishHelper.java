@@ -140,12 +140,16 @@ public class GlassfishHelper {
             if(tmp.exists()) {
                 FileUtils.cleanDirectory(tmp);
             }
+
+            File config = getDomainDirOverlay();
+            if(config != null) {
+                FileUtils.copyDirectory(config, domainDir, false);
+            }
+        } else {
+            log.log(Level.INFO, "Reusing existing GlassFish domain at: {0}",
+                    domainDir.getCanonicalPath());
         }
         
-        File config = getDomainDirOverlay();
-        if(config != null) {
-            FileUtils.copyDirectory(config, domainDir, false);
-        }
         
         System.setProperty("com.sun.aas.instanceRoot", domainDir.getCanonicalPath());
     }
