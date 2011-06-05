@@ -19,5 +19,6 @@
         <module>ejb-slsb</module>
         <module>common</module>
         <module>movie</module>
-    </modules>
+    <module>hello-client</module>
+  </modules>
 </project>
