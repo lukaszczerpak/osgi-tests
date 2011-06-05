@@ -16,12 +16,16 @@
 
 package org.ancoron.osgi.test.felix;
 
+import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.ancoron.osgi.test.MavenHelper;
 import org.ancoron.osgi.test.helloservice.HelloService;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.util.tracker.ServiceTracker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -104,7 +108,7 @@ public class FelixTest extends FelixTestSupport {
         
         svc.get();
     }
-    
+
     @Test(timeOut=10000L, dependsOnMethods="testWaitForService")
     public void testWaitForService2() throws InterruptedException, ExecutionException {
         logTest();
@@ -131,17 +135,78 @@ public class FelixTest extends FelixTestSupport {
                         HelloService.class.getName(), null);
                 st.open();
                 try {
-                    return st.waitForService(10000L);
+                    return st.waitForService(5000L);
                 } finally {
                     st.close();
                 }
             }
         });
         
-        // installBundle(MavenHelper.getArtifact("org.ancoron.osgi.test", "hello-service", "1.0.1-SNAPSHOT", "jar"),
-        //         getFramework().getBundleContext());
+        Object o = svc.get();
         
+        if(o != null) {
+            Assert.fail("I was NOT expecting to get a valid service instance!");
+        }
+    }
+    
+    @Test(timeOut=10000L, dependsOnMethods="testWaitForService")
+    public void testWaitForService3() throws InterruptedException, ExecutionException {
+        logTest();
+
+        Bundle helloBundle = getBundlesBySymbolicName("org.ancoron.osgi.test.hello-service").iterator().next();
+        uninstallBundle(helloBundle);
+        installAndStart("org.ancoron.osgi.test:hello-service");
+
+        Future<Object> svc = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
+
+            @Override
+            public Object call() throws Exception {
+                ServiceTracker st = new ServiceTracker(getFramework().getBundleContext(),
+                        HelloService.class.getName(), null);
+                st.open();
+                try {
+                    return st.waitForService(5000L);
+                } finally {
+                    st.close();
+                }
+            }
+        });
         
-        svc.get();
+        Object o = svc.get();
+        
+        if(o == null) {
+            Assert.fail("I didn't get a valid service instance!");
+        }
+    }
+    
+    @Test(timeOut=10000L, alwaysRun=true, dependsOnMethods="testWaitForService3")
+    public void testWaitForService4() throws InterruptedException, ExecutionException {
+        logTest();
+
+        Bundle helloBundle = getBundlesBySymbolicName("org.ancoron.osgi.test.hello-service").iterator().next();
+        uninstallBundle(helloBundle);
+        final BundleContext client = installAndStart("org.ancoron.osgi.test:hello-client").getBundleContext();
+        installAndStart("org.ancoron.osgi.test:hello-service");
+
+        Future<Object> svc = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
+
+            @Override
+            public Object call() throws Exception {
+                ServiceTracker st = new ServiceTracker(client,
+                        HelloService.class.getName(), null);
+                st.open();
+                try {
+                    return st.waitForService(5000L);
+                } finally {
+                    st.close();
+                }
+            }
+        });
+        
+        Object o = svc.get();
+        
+        if(o == null) {
+            Assert.fail("I didn't get a valid service instance!");
+        }
     }
 }
