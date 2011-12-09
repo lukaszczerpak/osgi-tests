@@ -11,7 +11,7 @@ public class Activator implements BundleActivator {
     @Override
     public void start(BundleContext context) throws Exception {
         listener = new HelloServiceListener();
-        context.addServiceListener(listener);
+        context.addServiceListener(listener, "(objectclass=org.ancoron.osgi.test.helloservice.HelloService)");
     }
 
     @Override

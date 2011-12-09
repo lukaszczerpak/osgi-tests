@@ -11,7 +11,7 @@
     <properties>
       <property name="connection.autocommit" value="false"/>
       <property name="eclipselink.ddl-generation" value="create-tables"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
+      <property name="eclipselink.logging.level" value="INFO"/>
       <property name="eclipselink.persistence-context.flush-mode" value="COMMIT"/>
     </properties>
   </persistence-unit>

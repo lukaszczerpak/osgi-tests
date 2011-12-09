@@ -318,7 +318,7 @@ public abstract class OSGiTestSupport<T extends Framework> {
         }
     }
     
-    @BeforeSuite(alwaysRun=true, timeOut=30000, groups={"generic-osgi-start"})
+    @BeforeSuite(alwaysRun=true, timeOut=120000, groups={"generic-osgi-start"})
     public void init() {
         log.info("Initializing test class environment...");
         try {

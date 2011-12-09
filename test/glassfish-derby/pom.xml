@@ -13,7 +13,7 @@
     <name>GlassFish OSGi Tests incl. Derby</name>
     
     <properties>
-        <glassfish.version>3.1-b41</glassfish.version>
+        <glassfish.version>3.1.2</glassfish.version>
         <glassfish.install.dir>/srv/servers/glassfish/tests</glassfish.install.dir>
     </properties>
 

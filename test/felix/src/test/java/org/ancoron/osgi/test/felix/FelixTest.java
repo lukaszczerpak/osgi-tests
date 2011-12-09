@@ -16,16 +16,13 @@
 
 package org.ancoron.osgi.test.felix;
 
-import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.ancoron.osgi.test.MavenHelper;
 import org.ancoron.osgi.test.helloservice.HelloService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.util.tracker.ServiceTracker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
