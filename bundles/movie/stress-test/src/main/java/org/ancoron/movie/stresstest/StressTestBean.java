@@ -18,6 +18,8 @@ package org.ancoron.movie.stresstest;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
@@ -37,7 +39,8 @@ import org.glassfish.osgicdi.OSGiService;
 @Singleton
 @Startup
 public class StressTestBean {
-    
+
+    private static final Logger log = Logger.getLogger(StressTestBean.class.getName());
     private static final ExecutorService exec = Executors.newCachedThreadPool();
     
     @Inject
@@ -55,6 +58,9 @@ public class StressTestBean {
     @Timeout
     protected void timeout() {
         final int num = 10000;
+        log.log(Level.INFO,
+                "Starting in-container stress test with {0} tasks...",
+                String.valueOf(num));
         
         for(int i=0; i<num; i++) {
             final int tmp = i;
@@ -62,11 +68,21 @@ public class StressTestBean {
 
                 @Override
                 public void run() {
-                    System.out.println("Running task #" + tmp);
+                    log.log(Level.INFO,
+                            "Running task #{0}",
+                            String.valueOf(tmp));
                     try {
-                        svc.getVideo(Long.valueOf(Math.round(Math.random() * Long.MAX_VALUE)));
+                        svc.getVideo(Long.valueOf(
+                                Math.round(Math.random() * Long.MAX_VALUE)
+                                ));
+                        
+                        log.log(Level.INFO,
+                                "... task #{0} was successful",
+                                String.valueOf(tmp));
                     } catch(MovieServiceException msx) {
-                        msx.printStackTrace(System.err);
+                        log.log(Level.INFO,
+                                "... task #" + tmp + " failed",
+                                msx);
                     }
                 }
             });
